@@ -1,0 +1,18 @@
+[
+{
+    "label": "V run",
+    "command": "v",
+    "args": ["run", "$ZED_WORKTREE_ROOT/lsv"],
+    "tags": ["v-main"],
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "V test",
+    "command": "v",
+    "args": ["test", "../lsv"],
+    "tags": ["v-test"],
+    "use_new_terminal": false,
+    "reveal": "always"
+  }
+]
