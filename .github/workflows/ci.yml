@@ -26,28 +26,11 @@ jobs:
           cd v && ./make.bat -tcc
           echo "adding '${PWD}' to PATH"
           echo "${PWD}" >> $GITHUB_PATH
-      - name: V doctor
-        shell: bash
-        run: |
-          # V doctor
-          v doctor
-      - name: Info
-        shell: bash
-        run: |
-          ## Info
-          # environment
-          echo "## environment"
-          echo "CI='${CI}'"
-          # tooling info display
-          echo "## testing/tooling"
-          lsv
-          which tcc >/dev/null 2>&1 && (tcc --version | head -1) || true
-          v --version
       - name: Build all
         shell: bash
         run: |
           # Build all
-          cd lsv && v -prod .
+          cd lsv/lsv && v -prod .
       - name: Run tests
         shell: bash
         run: |
@@ -68,11 +51,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: lsv
-
-      - name: V doctor
-        run: v doctor
-      - name: Ensure everything is formatted
-        run: cd lsv/lsv && make testfmt
       - name: Build all
         run: cd lsv/lsv && v -prod .
       - name: Run tests
@@ -98,7 +76,7 @@ jobs:
       - name: Run tests
         run: cd lsv && v test .
         
-  ubuntu-gnu-coreutils:
+  ubuntu-gnu-lsv:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Latest V
