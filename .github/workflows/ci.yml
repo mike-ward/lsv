@@ -1,0 +1,117 @@
+name: Build and Test
+
+on: [push, pull_request]
+
+jobs:
+  winos-test:
+    runs-on: windows-latest
+    env:
+      VFLAGS: -cc tcc
+      VJOBS: 1
+      VTEST_SHOW_START: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: lsv
+      - name: Checkout Latest V
+        uses: actions/checkout@v2
+        with:
+          repository: vlang/v
+          path: v
+      - name: Build V
+        shell: bash
+        run: |
+          # Build V
+          cd v && ./make.bat -tcc
+          echo "adding '${PWD}' to PATH"
+          echo "${PWD}" >> $GITHUB_PATH
+      - name: V doctor
+        shell: bash
+        run: |
+          # V doctor
+          v doctor
+      - name: Info
+        shell: bash
+        run: |
+          ## Info
+          # environment
+          echo "## environment"
+          echo "CI='${CI}'"
+          # tooling info display
+          echo "## testing/tooling"
+          lsv
+          which tcc >/dev/null 2>&1 && (tcc --version | head -1) || true
+          v --version
+      - name: Build all
+        shell: bash
+        run: |
+          # Build all
+          cd lsv && v -prod .
+      - name: Run tests
+        shell: bash
+        run: |
+          # Run tests
+          cd lsv && v test .
+
+  ubuntu-fast-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Latest V
+        uses: actions/checkout@v2
+        with:
+          repository: vlang/v
+          path: v
+      - name: Build V
+        run: cd v && make && sudo ./v symlink && cd -
+      - name: Checkout lsv (for tests)
+        uses: actions/checkout@v2
+        with:
+          path: lsv
+
+      - name: V doctor
+        run: v doctor
+      - name: Ensure everything is formatted
+        run: cd lsv/lsv && make testfmt
+      - name: Build all
+        run: cd lsv/lsv && v -prod .
+      - name: Run tests
+        run: cd lsv && v teest .
+
+  ubuntu-prod-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Latest V
+        uses: actions/checkout@v2
+        with:
+          repository: vlang/v
+          path: v
+      - name: Build V
+        run: cd v && make && sudo ./v symlink && cd -
+      - name: Checkout Lsv (for tests)
+        uses: actions/checkout@v2
+        with:
+          path: lsv
+
+      - name: Build all with -prod
+        run: cd lsv/lsv && v run -prod .
+      - name: Run tests
+        run: cd lsv && v test .
+        
+  ubuntu-gnu-coreutils:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Latest V
+        uses: actions/checkout@v2
+        with:
+          repository: vlang/v
+          path: v
+      - name: Build V
+        run: cd v && make && sudo ./v symlink && cd -
+      - name: Checkout lsv (for tests)
+        uses: actions/checkout@v2
+        with:
+          path: lsv
+
+      - name: Build all
+        run: cd lsv/lsv && v -prod .
