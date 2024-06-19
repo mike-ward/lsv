@@ -20,8 +20,8 @@ fn sort(entries []Entry, args Args) []Entry {
 		args.sort_time {
 			fn (a &Entry, b &Entry) int {
 				return match true {
-					a.stat.ctime < b.stat.ctime { 1 }
-					a.stat.ctime > b.stat.ctime { -1 }
+					a.stat.mtime < b.stat.mtime { 1 }
+					a.stat.mtime > b.stat.mtime { -1 }
 					else { compare_strings(a.name, b.name) }
 				}
 			}

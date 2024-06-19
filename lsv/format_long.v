@@ -106,13 +106,13 @@ fn format_long_listing(entries []Entry, args Args) {
 			line.write_string(space)
 		}
 
-		// date/time
+		// date/time (accessed)
 		if args.accessed_date {
 			line.write_string(format_time(entry, .accessed, args))
 			line.write_string(space)
 		}
 
-		// date/time
+		// date/time (status change)
 		if args.changed_date {
 			line.write_string(format_time(entry, .changed, args))
 			line.write_string(space)
