@@ -72,7 +72,7 @@ fn parse_args(args []string) Args {
 	mut fp := flag.new_flag_parser(args)
 
 	fp.application(app_name)
-	fp.version('2024.1.beta')
+	fp.version('2024.1.beta.1')
 	fp.skip_executable()
 	fp.description('List information about FILES')
 	fp.arguments_description('[FILES]')
@@ -124,7 +124,7 @@ fn parse_args(args []string) Args {
 	fp.footer('
 
 		The -c option emits color codes when standard output is
-		connected to a terminal. Colors are defined in the LS_COLORS 
+		connected to a terminal. Colors are defined in the LS_COLORS
 		environment variable.'.trim_indent())
 
 	files := fp.finalize() or { exit_error(err.msg()) }
