@@ -36,7 +36,7 @@ jobs:
         run: |
           # Run 
           cd lsv/lsv && ./lsv
-          cd lsv && v test .
+          cd v test .
 
   ubuntu-prod-build:
     runs-on: ubuntu-latest
@@ -58,5 +58,5 @@ jobs:
       - name: Run
         run: |
           cd lsv/lsv && ./lsv
-          cd lsv && v test .
+          cd v test .
         
