@@ -21,7 +21,7 @@
 Build `lsv` from source. I plan to have binary releases after beta.
 
 - [Install the V compiler](https://docs.vlang.io/installing-v-from-source.html). It takes a minute or less
-- `git clone ...`
+- `git clone https://github.com/mike-ward/lsv.git`
 - `cd lsv/lsv`
 - `v .` or `v -prod .` for an optimized version
 - `./lsv`
