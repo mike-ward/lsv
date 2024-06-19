@@ -34,27 +34,9 @@ jobs:
       - name: Run tests
         shell: bash
         run: |
-          # Run tests
+          # Run 
+          cd lsv/lsv && ./lsv
           cd lsv && v test .
-
-  ubuntu-fast-build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Latest V
-        uses: actions/checkout@v2
-        with:
-          repository: vlang/v
-          path: v
-      - name: Build V
-        run: cd v && make && sudo ./v symlink && cd -
-      - name: Checkout lsv (for tests)
-        uses: actions/checkout@v2
-        with:
-          path: lsv
-      - name: Build all
-        run: cd lsv/lsv && v -prod .
-      - name: Run tests
-        run: cd lsv && v test .
 
   ubuntu-prod-build:
     runs-on: ubuntu-latest
@@ -66,30 +48,15 @@ jobs:
           path: v
       - name: Build V
         run: cd v && make && sudo ./v symlink && cd -
-      - name: Checkout Lsv (for tests)
+      - name: Checkout lsv (for tests)
         uses: actions/checkout@v2
         with:
           path: lsv
 
       - name: Build all with -prod
         run: cd lsv/lsv && v -prod .
-      - name: Run tests
-        run: cd lsv && v test .
+      - name: Run
+        run: |
+          cd lsv/lsv && ./lsv
+          cd lsv && v test .
         
-  ubuntu-gnu-lsv:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Latest V
-        uses: actions/checkout@v2
-        with:
-          repository: vlang/v
-          path: v
-      - name: Build V
-        run: cd v && make && sudo ./v symlink && cd -
-      - name: Checkout lsv (for tests)
-        uses: actions/checkout@v2
-        with:
-          path: lsv
-
-      - name: Build all
-        run: cd lsv/lsv && v -prod .
