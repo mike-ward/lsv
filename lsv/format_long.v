@@ -275,9 +275,9 @@ enum StatTime {
 
 fn format_time(entry Entry, stat_time StatTime, args Args) string {
 	unix_time := match stat_time {
-		.accessed {entry.stat.atime} 
-		.changed { entry.stat.ctime}
-		.modified {entry.stat.mtime}
+		.accessed { entry.stat.atime }
+		.changed { entry.stat.ctime }
+		.modified { entry.stat.mtime }
 	}
 
 	date := time.unix(unix_time)
