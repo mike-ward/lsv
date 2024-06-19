@@ -8,13 +8,13 @@
 
 - Single binary with no external dependencies!
 - Not written in Rust 😮 (see below)
-- Colored output based on LS_COLORS
+- Color output based on LS_COLORS
 - Column Headers (long format)
-- Nearly as fast as GNU ls
+- Nearly as fast as GNU `ls`
 - Robust recursion. Try `lsv -R /`.
 - Options similar to `ls`
 - Blocked output (long format)
-- Shows link origins and follows links (long format)
+- Usual other `ls` features
 
 ## Installing
 
@@ -90,18 +90,18 @@ environment variable. To set colors, use the dircolors command.
 
 ## Why?
 
-I started writing an `ls` implemention for the V Languages CoreUtils project.
+I started writing a `ls` implemention for the V Languages CoreUtils project.
 Coreutils is a reimplementation of the POSIX and GNU utility programs written in the V Language. Everything was going fine until I started having too much fun and down the, "Rabbit Hole" I went.
 
-What's this V language? You can read about it here but the short version is it a simple, fast, safe, compiled language for developing maintainable software. I mentioned `lsv` is not written in Rust. I'm not trashing Rust. It is obviously a robust and popular language. However, it's a steep climb to get up to speed and requires a fair bit of cognitive load to use it well.
+What's this V language? You can read about it [here](https://vlang.io/), but the short version is it is a simple, fast, safe, compiled language for developing maintainable software. I mentioned `lsv` is not written in Rust. I'm not trashing Rust. It is obviously a robust and popular language. However, it's a steep climb to get up to speed and requires a fair bit of cognitive load to use it well.
 
-V is the opposite. It has many of the same safty features of Rust, but without the cognitive over head. It's simple, straightfoward syntax makes it a breeze to write. Compiles happen in milliseconds, not minutes and hours. And you don't need any special build helpers like Gradle.
+V is the opposite. It has many of the same safty features of Rust, but without the cognitive over head. It's simple, straightfoward syntax makes it a breeze to write. Builds happen in milliseconds, not minutes and hours. You don't need any special build tools like Gradle.
 
 `lsv` exists not because I wanted to write another file lister, but because it was so much darn fun writing in V. I get the same giddy feeling writing code in V as I did 40 years ago when I first discovered C.
 
 So yeah, I'm a V fan boy, but after 40+ years of programming, I find it refreshing to go back something so easy and enjoyable.
 
-Finally, take a look at the 'lsv' code base. The entire code base is **1.2 lines** 🧐. Furthermore, the implemention is straightforward. No threading, coroutines or fancy memory management. Even if you don't know V I bet you can understand it.
+Finally, take a look at the `lsv` code base. The entire code base is **1.2K lines** 🧐. Furthermore, the implemention is straightforward. No threading, coroutines or fancy memory management. Even if you don't know V, I'm betting you can understand the code.
 
 ## Helping Out
 
