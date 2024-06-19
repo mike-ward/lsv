@@ -20,10 +20,11 @@
 
 Build `lsv` from source. I plan to have binary releases after beta.
 
-- Install the V compiler. It takes a minute or less
+- [Install the V compiler](https://docs.vlang.io/installing-v-from-source.html). It takes a minute or less
 - `git clone ...`
 - `cd lsv/lsv`
 - `v .` or `v -prod .` for an optimized version
+- `./lsv`
 
 and your done. No kidding, that's it.
 
@@ -92,15 +93,15 @@ environment variable. To set colors, use the dircolors command.
 I started writing an `ls` implemention for the V Languages CoreUtils project.
 Coreutils is a reimplementation of the POSIX and GNU utility programs written in the V Language. Everything was going fine until I started having too much fun and down the, "Rabbit Hole" I went.
 
-What's this V language? You can read about it here but the short version is it a simple, fast, safe, compiled language developing maintainable software. I mentioned `lsv` is not written in Rust. I'm not trashing Rust. It is obviously a robust and popular language. However, it's a steep climb to get up to speed and requires a fair bit of cognitive load to use it well.
+What's this V language? You can read about it here but the short version is it a simple, fast, safe, compiled language for developing maintainable software. I mentioned `lsv` is not written in Rust. I'm not trashing Rust. It is obviously a robust and popular language. However, it's a steep climb to get up to speed and requires a fair bit of cognitive load to use it well.
 
 V is the opposite. It has many of the same safty features of Rust, but without the cognitive over head. It's simple, straightfoward syntax makes it a breeze to write. Compiles happen in milliseconds, not minutes and hours. And you don't need any special build helpers like Gradle.
 
-`lsv` exists not because I wanted to write another file lister, but because it was so much darn fun writing is in V. I get the same giddy feeling writing code in V as I did 40 years ago when I first discovered C.
+`lsv` exists not because I wanted to write another file lister, but because it was so much darn fun writing in V. I get the same giddy feeling writing code in V as I did 40 years ago when I first discovered C.
 
-So yeah, I'm a V fan boy, but after 40+ years of programming, I find it so refreshing to go back something so easy and enjoyable.
+So yeah, I'm a V fan boy, but after 40+ years of programming, I find it refreshing to go back something so easy and enjoyable.
 
-Finally, take a look at the 'lsv' code base. The entire code base is **1.2 lines** 🧐. Furthermore, the implemention is straightforward. No threading or coroutines. You don't even need to know V to understand the code (provided you have programmed in other languages of course).
+Finally, take a look at the 'lsv' code base. The entire code base is **1.2 lines** 🧐. Furthermore, the implemention is straightforward. No threading, coroutines or fancy memory management. Even if you don't know V I bet you can understand it.
 
 ## Helping Out
 
