@@ -55,7 +55,7 @@ jobs:
       - name: Run program
         shell: bash
         run: cd lsv/lsv && ./lsv      
-      - name: Run
+      - name: Run tests
         shell: bash
         run: cd lsv/lsv && v test .
         
