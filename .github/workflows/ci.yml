@@ -28,15 +28,13 @@ jobs:
           echo "${PWD}" >> $GITHUB_PATH
       - name: Build all
         shell: bash
-        run: |
-          # Build all
-          cd lsv/lsv && v -prod .
+        run: cd lsv/lsv && v -prod .
+      - name: Run program
+        shell: bash
+        run: cd lsv/lsv && ./lsv
       - name: Run tests
         shell: bash
-        run: |
-          # Run 
-          cd lsv/lsv && ./lsv
-          cd v test .
+        run: cd lsv && v test .
 
   ubuntu-prod-build:
     runs-on: ubuntu-latest
@@ -52,11 +50,12 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: lsv
-
       - name: Build all with -prod
         run: cd lsv/lsv && v -prod .
+      - name: Run program
+        shell: bash
+        run: cd lsv/lsv && ./lsv      
       - name: Run
-        run: |
-          cd lsv/lsv && ./lsv
-          cd v test .
+        shell: bash
+        run: cd lsv/lsv && v test .
         
