@@ -72,7 +72,7 @@ fn parse_args(args []string) Args {
 	mut fp := flag.new_flag_parser(args)
 
 	fp.application(app_name)
-	fp.version('2024.1.beta.1')
+	fp.version('2024.1.beta.2')
 	fp.skip_executable()
 	fp.description('List information about FILES')
 	fp.arguments_description('[FILES]')

@@ -9,6 +9,7 @@
 - Single binary with no external dependencies!
 - Not written in Rust 😮 (see below)
 - Color output based on LS_COLORS
+- Table format
 - Column Headers (long format)
 - Nearly as fast as GNU `ls`
 - Robust recursion. Try `lsv -R /`.
@@ -82,7 +83,7 @@ Long Listing Options:
   --version                 output version information and exit
 
 The -c option emits color codes when standard output is
-connected to a terminal. Colors are defined in the LS_COLORS 
+connected to a terminal. Colors are defined in the LS_COLORS
 environment variable. To set colors, use the dircolors command.
 ```
 
