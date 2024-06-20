@@ -2,6 +2,7 @@ import arrays
 import strings
 import term
 import v.mathutil
+import os
 
 const cell_max = 12 // limit on wide displays
 const cell_spacing = 3 // space between cells
@@ -83,6 +84,13 @@ fn format_with_commas(entries []Entry, args Args) {
 }
 
 fn format_cell(s string, width int, align Align, style Style, args Args) string {
+	return match args.table_format {
+		true { format_table_cell(s, width, align, style, args) }
+		else { format_cell_content(s, width, align, style, args) }
+	}
+}
+
+fn format_cell_content(s string, width int, align Align, style Style, args Args) string {
 	mut cell := ''
 	no_ansi_s := term.strip_ansi(s)
 	pad := width - no_ansi_s.runes().len
@@ -104,6 +112,12 @@ fn format_cell(s string, width int, align Align, style Style, args Args) string 
 	return cell
 }
 
+fn format_table_cell(s string, width int, align Align, style Style, args Args) string {
+	cell := format_cell_content(s, width, align, style, args)
+	return '${cell}${table_border_pad_right}'
+}
+
+// surrounds a cell with table borders
 fn print_dir_name(name string, args Args) {
 	if name.len > 0 {
 		print('\n')
@@ -128,5 +142,19 @@ fn get_style_for(entry Entry, args Args) Style {
 		entry.socket { args.style_so }
 		entry.file { args.style_fi }
 		else { no_style }
+	}
+}
+
+fn format_entry_name(entry Entry, args Args) string {
+	name := if args.relative_path {
+		os.join_path(entry.dir_name, entry.name)
+	} else {
+		entry.name
+	}
+
+	return match true {
+		entry.link { '${name} -> ${entry.link_origin}' }
+		args.quote { '"${name}"' }
+		else { name }
 	}
 }

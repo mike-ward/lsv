@@ -52,7 +52,7 @@ fn make_entry(file string, dir_name string, args Args) Entry {
 	}
 
 	is_dir := filetype == os.FileType.directory
-	is_file := !is_dir
+	is_file := !is_dir && !invalid
 	is_exe := stat.get_mode().bitmask() & 0b001001001 > 0
 	indicator := if is_dir && args.dir_indicator { '/' } else { '' }
 

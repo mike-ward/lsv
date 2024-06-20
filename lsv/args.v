@@ -8,51 +8,51 @@ const current_dir = ['.']
 
 struct Args {
 	// display options
-	long_format              bool
-	list_by_lines            bool
-	one_per_line             bool
-	dir_indicator            bool
-	with_commas              bool
-	colorize                 bool
-	width_in_cols            int
-	blocked_output           bool
-	no_dim                   bool
-	relative_path            bool
-	quote                    bool
-	can_show_color_on_stdout bool
+	blocked_output bool
+	colorize       bool
+	dir_indicator  bool
+	list_by_lines  bool
+	long_format    bool
+	no_dim         bool
+	one_per_line   bool
+	quote          bool
+	relative_path  bool
+	table_format   bool
+	width_in_cols  int
+	with_commas    bool
 	//
 	// filter, group and sorting options
 	all             bool
 	dirs_first      bool
 	only_dirs       bool
 	only_files      bool
+	recursion_depth int
+	recursive       bool
+	sort_ext        bool
+	sort_natural    bool
 	sort_none       bool
+	sort_reverse    bool
 	sort_size       bool
 	sort_time       bool
-	sort_natural    bool
-	sort_ext        bool
 	sort_width      bool
-	sort_reverse    bool
-	recursive       bool
-	recursion_depth int
 	//
 	// long view options
 	accessed_date     bool
 	changed_date      bool
 	header            bool
 	inode             bool
-	time_iso          bool
-	size_ki           bool
-	size_kb           bool
-	no_permissions    bool
+	link_origin       bool
+	no_count          bool
+	no_date           bool
+	no_group_name     bool
 	no_hard_links     bool
 	no_owner_name     bool
-	no_group_name     bool
+	no_permissions    bool
 	no_size           bool
-	no_date           bool
-	no_count          bool
-	link_origin       bool
 	octal_permissions bool
+	size_kb           bool
+	size_ki           bool
+	time_iso          bool
 	//
 	// from ls colors
 	style_di Style
@@ -86,8 +86,8 @@ fn parse_args(args []string) Args {
 	recursion_depth := fp.int('depth', ` `, max_int, 'limit depth of recursion')
 	list_by_lines := fp.bool('', `X`, false, 'list files by lines instead of by columns')
 	one_per_line := fp.bool('', `1`, false, 'list one file per line')
-	width_in_cols := fp.int('width', ` `, 0, 'set output width to <int>\n\nFiltering and Sorting Options:')
 
+	width_in_cols := fp.int('width', ` `, 0, 'set output width to <int>\n\nFiltering and Sorting Options:')
 	only_dirs := fp.bool('', `d`, false, 'list only directories')
 	only_files := fp.bool('', `f`, false, 'list only files')
 	dirs_first := fp.bool('', `g`, false, 'group directories before files')
@@ -97,21 +97,22 @@ fn parse_args(args []string) Args {
 	sort_natural := fp.bool('', `v`, false, 'sort digits within text as numbers')
 	sort_width := fp.bool('', `w`, false, 'sort by width, shortest first')
 	sort_ext := fp.bool('', `x`, false, 'sort by file extension')
-	sort_none := fp.bool('', `u`, false, 'no sorting\n\nLong Listing Options:')
 
+	sort_none := fp.bool('', `u`, false, 'no sorting\n\nLong Listing Options:')
 	blocked_output := fp.bool('', `b`, false, 'blank line every 5 rows')
 	size_ki := fp.bool('', `k`, false, 'sizes in kibibytes (1024) (e.g. 1k 234m 2g)')
 	size_kb := fp.bool('', `K`, false, 'sizes in Kilobytes (1000) (e.g. 1kb 234mb 2gb)')
-	long_format := fp.bool('', `l`, false, 'show long listing format')
+	long_format := fp.bool('', `l`, false, 'long listing format')
 	link_origin := fp.bool('', `L`, false, "show link's origin information")
 	octal_permissions := fp.bool('', `o`, false, 'show octal permissions')
 	relative_path := fp.bool('', `p`, false, 'show relative path')
+	accessed_date := fp.bool('', `A`, false, 'show last accessed date')
+	changed_date := fp.bool('', `C`, false, 'show last status changed date')
+	header := fp.bool('', `H`, false, 'show column headers')
+	time_iso := fp.bool('', `I`, false, 'show time in iso format')
+	inode := fp.bool('', `N`, false, 'show inodes')
+	table_format := fp.bool('', `T`, false, 'table listing format\n')
 
-	accessed_date := fp.bool('accessed', ` `, false, 'show last accessed date')
-	changed_date := fp.bool('changed', ` `, false, 'show last status changed date')
-	header := fp.bool('header', ` `, false, 'show column headers')
-	inode := fp.bool('inode', ` `, false, 'show inodes')
-	time_iso := fp.bool('iso', ` `, false, 'show time in iso format\n')
 	no_count := fp.bool('no-counts', ` `, false, 'hide file/dir counts')
 	no_date := fp.bool('no-date', ` `, false, 'hide date (modified)')
 	no_dim := fp.bool('no-dim', ` `, false, 'hide shading; useful for light backgrounds')
@@ -122,21 +123,21 @@ fn parse_args(args []string) Args {
 	no_size := fp.bool('no-size', ` `, false, 'hide file size\n')
 
 	fp.footer('
-
 		The -c option emits color codes when standard output is
+
 		connected to a terminal. Colors are defined in the LS_COLORS
 		environment variable.'.trim_indent())
-
 	files := fp.finalize() or { exit_error(err.msg()) }
+
 	style_map := make_style_map()
+	can_show_color_on_stdout := term.can_show_color_on_stdout()
 
 	return Args{
 		all: all
 		accessed_date: accessed_date
 		blocked_output: blocked_output
-		can_show_color_on_stdout: term.can_show_color_on_stdout()
 		changed_date: changed_date
-		colorize: colorize
+		colorize: colorize && can_show_color_on_stdout
 		dir_indicator: dir_indicator
 		dirs_first: dirs_first
 		files: if files == [] { current_dir } else { files }
@@ -178,6 +179,7 @@ fn parse_args(args []string) Args {
 		style_ln: style_map['ln']
 		style_pi: style_map['pi']
 		style_so: style_map['so']
+		table_format: table_format && long_format
 		time_iso: time_iso
 		width_in_cols: width_in_cols
 		with_commas: with_commas

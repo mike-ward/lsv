@@ -1,7 +1,6 @@
 import arrays
 import os
 import strings
-import term
 import time
 import v.mathutil { max }
 
@@ -22,34 +21,52 @@ const space = ' '
 const date_format = 'MMM DD YYYY HH:MM:ss'
 const date_iso_format = 'YYYY-MM-DD HH:MM:ss'
 
+struct Longest {
+	inode      int
+	nlink      int
+	owner_name int
+	group_name int
+	size       int
+	file       int
+}
+
+enum StatTime {
+	accessed
+	changed
+	modified
+}
+
 fn format_long_listing(entries []Entry, args Args) {
-	longest_inode := longest_inode_len(entries, inode_title, args)
-	longest_nlink := longest_nlink_len(entries, links_title, args)
-	longest_owner_name := longest_owner_name_len(entries, owner_title, args)
-	longest_group_name := longest_group_name_len(entries, group_title, args)
-	longest_size := longest_size_len(entries, size_title, args)
-	longest_file := longest_file_name_len(entries, name_title, args)
+	longest := longest_entries(entries, args)
+	header, cols := format_header(args, longest)
+	header_len := real_length(header)
+	print_header(header, args, header_len, cols)
+	print_header_border(args, header_len, cols)
+
 	dim := if args.no_dim { no_style } else { dim_style }
-
-	if args.header {
-		print_header(args, longest_inode, longest_nlink, longest_owner_name, longest_group_name,
-			longest_size, longest_file)
-	}
-
 	mut line := strings.new_builder(300)
 
 	for idx, entry in entries {
-		// spacer row
+		// emit blank row every 5th row
 		if args.blocked_output {
 			if idx % block_size == 0 && idx != 0 {
-				line.write_string('\n')
+				if args.table_format {
+					line.write_string(border_row_middle(header_len, cols))
+				} else {
+					line.write_string('\n')
+				}
 			}
+		}
+
+		// left table border
+		if args.table_format {
+			line.write_string(table_border_pad_left)
 		}
 
 		// inode
 		if args.inode {
 			content := if entry.invalid { unknown } else { entry.stat.inode.str() }
-			line.write_string(format_cell(content, longest_inode, Align.right, no_style, args) +
+			line.write_string(format_cell(content, longest.inode, Align.right, no_style, args) +
 				space)
 		}
 
@@ -65,26 +82,26 @@ fn format_long_listing(entries []Entry, args Args) {
 
 		// octal permissions
 		if args.octal_permissions {
-			content := print_octal_permissions(entry, args)
+			content := format_octal_permissions(entry, args)
 			line.write_string(format_cell(content, 4, .left, dim, args) + space)
 		}
 
 		// hard links
 		if !args.no_hard_links {
 			content := if entry.invalid { unknown } else { '${entry.stat.nlink}' }
-			line.write_string(format_cell(content, longest_nlink, .right, dim, args) + space)
+			line.write_string(format_cell(content, longest.nlink, .right, dim, args) + space)
 		}
 
 		// owner name
 		if !args.no_owner_name {
 			content := if entry.invalid { unknown } else { get_owner_name(entry.stat.uid) }
-			line.write_string(format_cell(content, longest_owner_name, .right, dim, args) + space)
+			line.write_string(format_cell(content, longest.owner_name, .right, dim, args) + space)
 		}
 
 		// group name
 		if !args.no_group_name {
 			content := if entry.invalid { unknown } else { get_group_name(entry.stat.gid) }
-			line.write_string(format_cell(content, longest_group_name, .right, dim, args) + space)
+			line.write_string(format_cell(content, longest.group_name, .right, dim, args) + space)
 		}
 
 		// size
@@ -97,7 +114,7 @@ fn format_long_listing(entries []Entry, args Args) {
 				else { entry.stat.size.str() }
 			}
 			line.write_string(
-				format_cell(content, longest_size, .right, get_style_for(entry, args), args) + space)
+				format_cell(content, longest.size, .right, get_style_for(entry, args), args) + space)
 		}
 
 		// date/time(modified)
@@ -118,68 +135,122 @@ fn format_long_listing(entries []Entry, args Args) {
 			line.write_string(space)
 		}
 
-		line.write_string(space)
-
 		// file name
-		line.write_string(format_cell(format_entry_name(entry, args), longest_file, .left,
-			get_style_for(entry, args), args))
+		file_style := get_style_for(entry, args)
+		file_name := format_entry_name(entry, args)
+		file_cell := format_cell(file_name, longest.file, .left, file_style, args)
+		line.write_string(file_cell)
 
 		println(line)
 	}
 
+	// stats
 	if !args.no_count {
-		statistics(entries, args)
+		if args.table_format {
+			print(border_row_middle_end(header_len, cols))
+		}
+		statistics(entries, header_len, args)
+	}
+
+	// bottom border
+	print_bottom_border(args, header_len, cols)
+}
+
+fn longest_entries(entries []Entry, args Args) Longest {
+	return Longest{
+		inode: longest_inode_len(entries, inode_title, args)
+		nlink: longest_nlink_len(entries, links_title, args)
+		owner_name: longest_owner_name_len(entries, owner_title, args)
+		group_name: longest_group_name_len(entries, group_title, args)
+		size: longest_size_len(entries, size_title, args)
+		file: longest_file_name_len(entries, name_title, args)
 	}
 }
 
-fn print_header(args Args, longest_inode int, longest_nlink int, longest_owner_name int, longest_group_name int, longest_size int, longest_file int) {
-	if !args.header {
-		return
+fn print_header(header string, args Args, len int, cols []int) {
+	if args.header {
+		if args.table_format {
+			print(border_row_top(len, cols))
+		}
+		println(header)
+		if !args.table_format {
+			println(format_header_divider(len, args))
+		}
 	}
+}
 
+fn format_header(args Args, longest Longest) (string, []int) {
 	mut buffer := ''
-	dim := if args.no_dim { no_style } else { dim_style }
+	mut cols := []int{}
+	dim := if args.no_dim || args.table_format { no_style } else { dim_style }
+	table_pad := if args.table_format { table_border_pad_left } else { '' }
 
+	if args.table_format {
+		buffer += table_border_pad_left
+	}
 	if args.inode {
-		buffer += left_pad(inode_title, longest_inode)
+		title := if args.header { inode_title } else { '' }
+		buffer += left_pad(title, longest.inode) + table_pad
+		cols << real_length(buffer) - 1
 	}
 	if !args.no_permissions {
-		buffer += left_pad('T ${permissions_title}', 0)
+		buffer += 'T ${table_pad}'
+		cols << real_length(buffer) - 1
+		buffer += left_pad(permissions_title, permissions_title.len) + table_pad
+		cols << real_length(buffer) - 1
 	}
 	if args.octal_permissions {
-		buffer += left_pad(mask_title, mask_title.len)
+		buffer += left_pad(mask_title, mask_title.len) + table_pad
+		cols << real_length(buffer) - 1
 	}
 	if !args.no_hard_links {
-		buffer += left_pad(links_title, longest_nlink)
+		title := if args.header { links_title } else { '' }
+		buffer += left_pad(title, longest.nlink) + table_pad
+		cols << real_length(buffer) - 1
 	}
 	if !args.no_owner_name {
-		buffer += left_pad(owner_title, longest_owner_name)
+		title := if args.header { owner_title } else { '' }
+		buffer += left_pad(title, longest.owner_name) + table_pad
+		cols << real_length(buffer) - 1
 	}
 	if !args.no_group_name {
-		buffer += left_pad(group_title, longest_group_name)
+		title := if args.header { group_title } else { '' }
+		buffer += left_pad(title, longest.group_name) + table_pad
+		cols << real_length(buffer) - 1
 	}
 	if !args.no_size {
-		buffer += left_pad(size_title, longest_size)
+		title := if args.header { size_title } else { '' }
+		buffer += left_pad(title, longest.size) + table_pad
+		cols << real_length(buffer) - 1
 	}
 	if !args.no_date {
+		title := if args.header { date_modified_title } else { '' }
 		width := if args.time_iso { date_iso_format.len } else { date_format.len }
-		buffer += right_pad(date_modified_title, width)
+		buffer += right_pad(title, width) + table_pad
+		cols << real_length(buffer) - 1
 	}
 	if args.accessed_date {
+		title := if args.header { date_accessed_title } else { '' }
 		width := if args.time_iso { date_iso_format.len } else { date_format.len }
-		buffer += right_pad(date_accessed_title, width)
+		buffer += right_pad(title, width) + table_pad
+		cols << real_length(buffer) - 1
 	}
 	if args.changed_date {
+		title := if args.header { date_status_title } else { '' }
 		width := if args.time_iso { date_iso_format.len } else { date_format.len }
-		buffer += right_pad(date_status_title, width)
+		buffer += right_pad(title, width) + table_pad
+		cols << real_length(buffer) - 1
 	}
 
-	buffer += space + name_title
-	println(format_cell(buffer, 0, .left, dim, args))
+	buffer += right_pad_end(name_title, longest.file) // drop last space
+	header := format_cell(buffer, 0, .left, dim, args)
+	return header, cols
+}
 
-	div_len := term.strip_ansi(buffer).len + longest_file - name_title.len
-	divider := '┈'.repeat(div_len)
-	println(format_cell(divider, 0, .left, dim, args))
+fn format_header_divider(len int, args Args) string {
+	dim := if args.no_dim { no_style } else { dim_style }
+	divider := '┈'.repeat(len)
+	return format_cell(divider, 0, .left, dim, args)
 }
 
 fn left_pad(s string, width int) string {
@@ -192,7 +263,12 @@ fn right_pad(s string, width int) string {
 	return if pad > 0 { s + space.repeat(pad) + space } else { s + space }
 }
 
-fn statistics(entries []Entry, args Args) {
+fn right_pad_end(s string, width int) string {
+	pad := width - s.len
+	return if pad > 0 { s + space.repeat(pad) } else { s }
+}
+
+fn statistics(entries []Entry, len int, args Args) {
 	file_count := entries.filter(it.file).len
 	dir_count := entries.filter(it.dir).len
 	link_count := entries.filter(it.link).len
@@ -213,20 +289,11 @@ fn statistics(entries []Entry, args Args) {
 		stats += ' ${link_count_styled} ${links}'
 	}
 
-	println(stats)
-}
-
-fn format_entry_name(entry Entry, args Args) string {
-	name := if args.relative_path {
-		os.join_path(entry.dir_name, entry.name)
+	if args.table_format {
+		s := format_cell(stats, len - 4, .left, no_style, args)
+		println('${table_border_divider} ${s}')
 	} else {
-		entry.name
-	}
-
-	return match true {
-		entry.link { '${name} -> ${entry.link_origin}' }
-		args.quote { '"${name}"' }
-		else { name }
+		println(stats)
 	}
 }
 
@@ -245,7 +312,7 @@ fn file_flag(entry Entry, args Args) string {
 	}
 }
 
-fn print_octal_permissions(entry Entry, args Args) string {
+fn format_octal_permissions(entry Entry, args Args) string {
 	mode := entry.stat.get_mode()
 	return '0${mode.owner.bitmask()}${mode.group.bitmask()}${mode.others.bitmask()}'
 }
@@ -267,12 +334,6 @@ fn file_permission(file_permission os.FilePermission, args Args) string {
 	return '${r}${w}${x}'
 }
 
-enum StatTime {
-	accessed
-	changed
-	modified
-}
-
 fn format_time(entry Entry, stat_time StatTime, args Args) string {
 	unix_time := match stat_time {
 		.accessed { entry.stat.atime }
@@ -285,7 +346,7 @@ fn format_time(entry Entry, stat_time StatTime, args Args) string {
 		.custom_format(if args.time_iso { date_iso_format } else { date_format })
 
 	dim := if args.no_dim { no_style } else { dim_style }
-	content := if entry.invalid { '?'.repeat(date.len) } else { date }
+	content := if entry.invalid { '?' + space.repeat(date.len - 1) } else { date }
 	return format_cell(content, date.len, .left, dim, args)
 }
 

@@ -53,7 +53,7 @@ const cd_style = Style{
 }
 
 fn style_string(s string, style Style, args Args) string {
-	if !args.colorize || !args.can_show_color_on_stdout {
+	if !args.colorize {
 		return s
 	}
 	mut out := style.fg(s)
