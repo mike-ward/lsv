@@ -3,7 +3,8 @@
 `lsv` is modern alternative to `ls` in the spirit of `exa, eza, lsd, pls, natls, ls-go` and others.
 
 ![Screenshot](screenshot.jpeg)
-![Screenshot](screenshot2.jpeg)
+
+![Screenshot](screenshot2.png)
 
 ## Features
 
