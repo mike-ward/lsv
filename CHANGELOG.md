@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Table formatted listings
 - Compact date format
+- Checksum (md5, sha1, sha224, sha256, sha512, blake2b)
 
 ## [2024.1.beta.1] - 2024-06-19
 

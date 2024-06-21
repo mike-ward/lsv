@@ -14,10 +14,12 @@ Table format with block and header option
 - Color output based on LS_COLORS
 - Table format (long format)
 - Column Headers (long format)
+- Blocked output (long format)
+- Checksum (md5, sha1, sha224, sha256, sha512, blake2b)
+- Friendly file sizes and dates
 - Nearly as fast as GNU `ls`
 - Robust recursion. Try `lsv -R /`.
 - Options similar to `ls`
-- Blocked output (long format)
 - Usual other `ls` features
 
 ## Installing
