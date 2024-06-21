@@ -54,6 +54,7 @@ struct Args {
 	size_ki           bool
 	time_iso          bool
 	time_compact      bool
+	checksum          string
 	//
 	// from ls colors
 	style_di Style
@@ -101,6 +102,7 @@ fn parse_args(args []string) Args {
 
 	sort_none := fp.bool('', `u`, false, 'no sorting\n\nLong Listing Options:')
 	blocked_output := fp.bool('', `b`, false, 'blank line every 5 rows')
+	table_format := fp.bool('', `B`, false, 'add borders to long listing format')
 	size_ki := fp.bool('', `k`, false, 'sizes in kibibytes (1024) (e.g. 1k 234m 2g)')
 	size_kb := fp.bool('', `K`, false, 'sizes in Kilobytes (1000) (e.g. 1kb 234mb 2gb)')
 	long_format := fp.bool('', `l`, false, 'long listing format')
@@ -113,7 +115,7 @@ fn parse_args(args []string) Args {
 	time_compact := fp.bool('', `J`, false, 'show time in compact format')
 	link_origin := fp.bool('', `L`, false, "show link's origin information")
 	inode := fp.bool('', `N`, false, 'show inodes')
-	table_format := fp.bool('', `T`, false, 'table listing format\n')
+	checksum := fp.string('cs', ` `, '', 'show file checksum\n${flag.space}(md5, sha1, sha224, sha256, sha512, blake2b)\n')
 
 	no_count := fp.bool('no-counts', ` `, false, 'hide file/dir counts')
 	no_date := fp.bool('no-date', ` `, false, 'hide date (modified)')
@@ -139,6 +141,7 @@ fn parse_args(args []string) Args {
 		accessed_date: accessed_date
 		blocked_output: blocked_output
 		changed_date: changed_date
+		checksum: checksum
 		colorize: colorize && can_show_color_on_stdout
 		dir_indicator: dir_indicator
 		dirs_first: dirs_first

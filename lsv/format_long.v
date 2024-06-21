@@ -28,6 +28,7 @@ struct Longest {
 	owner_name int
 	group_name int
 	size       int
+	checksum   int
 	file       int
 }
 
@@ -70,6 +71,13 @@ fn format_long_listing(entries []Entry, args Args) {
 			content := if entry.invalid { unknown } else { entry.stat.inode.str() }
 			line.write_string(format_cell(content, longest.inode, Align.right, no_style,
 				args))
+			line.write_string(space)
+		}
+
+		// checksum
+		if args.checksum != '' {
+			checksum := format_cell(entry.checksum, longest.checksum, .left, dim, args)
+			line.write_string(checksum)
 			line.write_string(space)
 		}
 
@@ -122,8 +130,9 @@ fn format_long_listing(entries []Entry, args Args) {
 				args.size_kb && args.size_kb { entry.size_kb }
 				else { entry.stat.size.str() }
 			}
-			line.write_string(format_cell(content, longest.size, .right, get_style_for(entry,
-				args), args))
+			size_style := get_style_for(entry, args)
+			size := format_cell(content, longest.size, .right, size_style, args)
+			line.write_string(size)
 			line.write_string(space)
 		}
 
@@ -172,6 +181,7 @@ fn longest_entries(entries []Entry, args Args) Longest {
 		owner_name: longest_owner_name_len(entries, owner_title, args)
 		group_name: longest_group_name_len(entries, group_title, args)
 		size: longest_size_len(entries, size_title, args)
+		checksum: longest_checksum_len(entries, args.checksum, args)
 		file: longest_file_name_len(entries, name_title, args)
 	}
 }
@@ -197,6 +207,12 @@ fn format_header(args Args, longest Longest) (string, []int) {
 	if args.inode {
 		title := if args.header { inode_title } else { '' }
 		buffer += left_pad(title, longest.inode) + table_pad
+		cols << real_length(buffer) - 1
+	}
+	if args.checksum != '' {
+		title := if args.header { args.checksum.capitalize() } else { '' }
+		width := longest.checksum
+		buffer += right_pad(title, width) + table_pad
 		cols << real_length(buffer) - 1
 	}
 	if !args.no_permissions {
@@ -398,6 +414,12 @@ fn longest_inode_len(entries []Entry, title string, args Args) int {
 fn longest_file_name_len(entries []Entry, title string, args Args) int {
 	lengths := entries.map(it.name.len + it.link_origin.len +
 		if it.link_origin.len > 0 { 4 } else { 0 })
+	max := arrays.max(lengths) or { 0 }
+	return if !args.header { max } else { max(max, title.len) }
+}
+
+fn longest_checksum_len(entries []Entry, title string, args Args) int {
+	lengths := entries.map(it.checksum.len)
 	max := arrays.max(lengths) or { 0 }
 	return if !args.header { max } else { max(max, title.len) }
 }

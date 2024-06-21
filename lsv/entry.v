@@ -1,4 +1,9 @@
 import os
+import crypto.md5
+import crypto.sha1
+import crypto.sha256
+import crypto.sha512
+import crypto.blake2b
 import math
 
 struct Entry {
@@ -16,6 +21,7 @@ struct Entry {
 	link_origin string
 	size_ki     string
 	size_kb     string
+	checksum    string
 	invalid     bool // lstat could not access
 }
 
@@ -71,6 +77,7 @@ fn make_entry(file string, dir_name string, args Args) Entry {
 		link_origin: link_origin
 		size_ki: if args.size_ki { readable_size(stat.size, true) } else { '' }
 		size_kb: if args.size_kb { readable_size(stat.size, false) } else { '' }
+		checksum: checksum(file, dir_name, args)
 		invalid: invalid
 	}
 }
@@ -95,4 +102,19 @@ fn readable_size(size u64, si bool) string {
 		sz /= kb
 	}
 	return size.str()
+}
+
+fn checksum(name string, dir_name string, args Args) string {
+	file := os.join_path(dir_name, name)
+	bytes := os.read_bytes(file) or { return unknown }
+
+	return match args.checksum {
+		'md5' { md5.sum(bytes).hex() }
+		'sha1' { sha1.sum(bytes).hex() }
+		'sha224' { sha256.sum224(bytes).hex() }
+		'sha256' { sha256.sum256(bytes).hex() }
+		'sha512' { sha512.sum512(bytes).hex() }
+		'blake2b' { blake2b.sum256(bytes).hex() }
+		else { unknown }
+	}
 }
