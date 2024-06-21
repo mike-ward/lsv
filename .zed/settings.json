@@ -6,7 +6,7 @@
 			"arguments": ["fmt"]
 		}
 	},
-	"autosave": { "after_delay": { "milliseconds": 500 } },
+	"autosave": "on_focus_change",
 	"tab_size": 8,
 	"hard_tabs": true
 }

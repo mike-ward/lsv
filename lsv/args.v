@@ -53,6 +53,7 @@ struct Args {
 	size_kb           bool
 	size_ki           bool
 	time_iso          bool
+	time_compact      bool
 	//
 	// from ls colors
 	style_di Style
@@ -103,13 +104,14 @@ fn parse_args(args []string) Args {
 	size_ki := fp.bool('', `k`, false, 'sizes in kibibytes (1024) (e.g. 1k 234m 2g)')
 	size_kb := fp.bool('', `K`, false, 'sizes in Kilobytes (1000) (e.g. 1kb 234mb 2gb)')
 	long_format := fp.bool('', `l`, false, 'long listing format')
-	link_origin := fp.bool('', `L`, false, "show link's origin information")
 	octal_permissions := fp.bool('', `o`, false, 'show octal permissions')
 	relative_path := fp.bool('', `p`, false, 'show relative path')
 	accessed_date := fp.bool('', `A`, false, 'show last accessed date')
 	changed_date := fp.bool('', `C`, false, 'show last status changed date')
 	header := fp.bool('', `H`, false, 'show column headers')
 	time_iso := fp.bool('', `I`, false, 'show time in iso format')
+	time_compact := fp.bool('', `J`, false, 'show time in compact format')
+	link_origin := fp.bool('', `L`, false, "show link's origin information")
 	inode := fp.bool('', `N`, false, 'show inodes')
 	table_format := fp.bool('', `T`, false, 'table listing format\n')
 
@@ -123,8 +125,8 @@ fn parse_args(args []string) Args {
 	no_size := fp.bool('no-size', ` `, false, 'hide file size\n')
 
 	fp.footer('
-		The -c option emits color codes when standard output is
 
+		The -c option emits color codes when standard output is
 		connected to a terminal. Colors are defined in the LS_COLORS
 		environment variable.'.trim_indent())
 	files := fp.finalize() or { exit_error(err.msg()) }
@@ -180,6 +182,7 @@ fn parse_args(args []string) Args {
 		style_pi: style_map['pi']
 		style_so: style_map['so']
 		table_format: table_format && long_format
+		time_compact: time_compact
 		time_iso: time_iso
 		width_in_cols: width_in_cols
 		with_commas: with_commas

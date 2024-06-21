@@ -3,13 +3,14 @@
 `lsv` is modern alternative to `ls` in the spirit of `exa, eza, lsd, pls, natls, ls-go` and others.
 
 ![Screenshot](screenshot.jpeg)
+![Screenshot](screenshot2.jpeg)
 
 ## Features
 
 - Single binary with no external dependencies!
 - Not written in Rust 😮 (see below)
 - Color output based on LS_COLORS
-- Table format
+- Table format (long format)
 - Column Headers (long format)
 - Nearly as fast as GNU `ls`
 - Robust recursion. Try `lsv -R /`.
@@ -21,7 +22,7 @@
 
 Build `lsv` from source. I plan to have binary releases after beta.
 
-- [Install the V compiler](https://docs.vlang.io/installing-v-from-source.html). It takes a minute or less
+- [Install the compiler](https://docs.vlang.io/installing-v-from-source.html). It takes a minute or less
 - `git clone https://github.com/mike-ward/lsv.git`
 - `cd lsv`
 - `make`
@@ -29,7 +30,7 @@ Build `lsv` from source. I plan to have binary releases after beta.
 
 ## Help
 ```
-lsv 2024.1.beta
+lsv 2024.1.beta.2
 -----------------------------------------------
 Usage: lsv [options] [FILES]
 
@@ -63,15 +64,20 @@ Long Listing Options:
   -b                        blank line every 5 rows
   -k                        sizes in kibibytes (1024) (e.g. 1k 234m 2g)
   -K                        sizes in Kilobytes (1000) (e.g. 1kb 234mb 2gb)
-  -l                        show long listing format
-  -L                        show link's origin information
+  -l                        long listing format
   -o                        show octal permissions
   -p                        show relative path
-      --header              show column headers
-      --inode               show inodes
-      --iso                 show time in iso format
+  -A                        show last accessed date
+  -C                        show last status changed date
+  -H                        show column headers
+  -I                        show time in iso format
+  -J                        show time in compact format
+  -L                        show link's origin information
+  -N                        show inodes
+  -T                        table listing format
+
       --no-counts           hide file/dir counts
-      --no-date             hide date
+      --no-date             hide date (modified)
       --no-dim              hide shading; useful for light backgrounds
       --no-group            hide group name
       --no-hard-links       hide hard links count
@@ -84,7 +90,7 @@ Long Listing Options:
 
 The -c option emits color codes when standard output is
 connected to a terminal. Colors are defined in the LS_COLORS
-environment variable. To set colors, use the dircolors command.
+environment variable.
 ```
 
 ## Why?

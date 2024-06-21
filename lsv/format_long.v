@@ -11,15 +11,16 @@ const links_title = 'Links'
 const owner_title = 'Owner'
 const group_title = 'Group'
 const size_title = 'Size'
-const date_modified_title = 'Date (modified)'
-const date_accessed_title = 'Date (accessed)'
-const date_status_title = 'Date (status change)'
+const date_modified_title = 'Mmodified'
+const date_accessed_title = 'Accessed'
+const date_status_title = 'Status Change'
 const name_title = 'Name'
 const unknown = '?'
 const block_size = 5
 const space = ' '
 const date_format = 'MMM DD YYYY HH:MM:ss'
 const date_iso_format = 'YYYY-MM-DD HH:MM:ss'
+const date_compact_format = "DD MMM'YY HH:MM"
 
 struct Longest {
 	inode      int
@@ -40,6 +41,7 @@ fn format_long_listing(entries []Entry, args Args) {
 	longest := longest_entries(entries, args)
 	header, cols := format_header(args, longest)
 	header_len := real_length(header)
+
 	print_header(header, args, header_len, cols)
 	print_header_border(args, header_len, cols)
 
@@ -66,42 +68,49 @@ fn format_long_listing(entries []Entry, args Args) {
 		// inode
 		if args.inode {
 			content := if entry.invalid { unknown } else { entry.stat.inode.str() }
-			line.write_string(format_cell(content, longest.inode, Align.right, no_style, args) +
-				space)
+			line.write_string(format_cell(content, longest.inode, Align.right, no_style,
+				args))
+			line.write_string(space)
 		}
 
 		// permissions
 		if !args.no_permissions {
 			flag := file_flag(entry, args)
-			line.write_string(format_cell(flag, 1, .left, no_style, args) + space)
+			line.write_string(format_cell(flag, 1, .left, no_style, args))
+			line.write_string(space)
 
 			content := permissions(entry, args)
-			line.write_string(format_cell(content, permissions_title.len, .right, no_style, args) +
-				space)
+			line.write_string(format_cell(content, permissions_title.len, .right, no_style,
+				args))
+			line.write_string(space)
 		}
 
 		// octal permissions
 		if args.octal_permissions {
 			content := format_octal_permissions(entry, args)
-			line.write_string(format_cell(content, 4, .left, dim, args) + space)
+			line.write_string(format_cell(content, 4, .left, dim, args))
+			line.write_string(space)
 		}
 
 		// hard links
 		if !args.no_hard_links {
 			content := if entry.invalid { unknown } else { '${entry.stat.nlink}' }
-			line.write_string(format_cell(content, longest.nlink, .right, dim, args) + space)
+			line.write_string(format_cell(content, longest.nlink, .right, dim, args))
+			line.write_string(space)
 		}
 
 		// owner name
 		if !args.no_owner_name {
 			content := if entry.invalid { unknown } else { get_owner_name(entry.stat.uid) }
-			line.write_string(format_cell(content, longest.owner_name, .right, dim, args) + space)
+			line.write_string(format_cell(content, longest.owner_name, .right, dim, args))
+			line.write_string(space)
 		}
 
 		// group name
 		if !args.no_group_name {
 			content := if entry.invalid { unknown } else { get_group_name(entry.stat.gid) }
-			line.write_string(format_cell(content, longest.group_name, .right, dim, args) + space)
+			line.write_string(format_cell(content, longest.group_name, .right, dim, args))
+			line.write_string(space)
 		}
 
 		// size
@@ -113,8 +122,9 @@ fn format_long_listing(entries []Entry, args Args) {
 				args.size_kb && args.size_kb { entry.size_kb }
 				else { entry.stat.size.str() }
 			}
-			line.write_string(
-				format_cell(content, longest.size, .right, get_style_for(entry, args), args) + space)
+			line.write_string(format_cell(content, longest.size, .right, get_style_for(entry,
+				args), args))
+			line.write_string(space)
 		}
 
 		// date/time(modified)
@@ -136,10 +146,9 @@ fn format_long_listing(entries []Entry, args Args) {
 		}
 
 		// file name
-		file_style := get_style_for(entry, args)
 		file_name := format_entry_name(entry, args)
-		file_cell := format_cell(file_name, longest.file, .left, file_style, args)
-		line.write_string(file_cell)
+		file_style := get_style_for(entry, args)
+		line.write_string(format_cell(file_name, longest.file, .left, file_style, args))
 
 		println(line)
 	}
@@ -173,9 +182,6 @@ fn print_header(header string, args Args, len int, cols []int) {
 			print(border_row_top(len, cols))
 		}
 		println(header)
-		if !args.table_format {
-			println(format_header_divider(len, args))
-		}
 	}
 }
 
@@ -225,19 +231,19 @@ fn format_header(args Args, longest Longest) (string, []int) {
 	}
 	if !args.no_date {
 		title := if args.header { date_modified_title } else { '' }
-		width := if args.time_iso { date_iso_format.len } else { date_format.len }
+		width := time_format(args).len
 		buffer += right_pad(title, width) + table_pad
 		cols << real_length(buffer) - 1
 	}
 	if args.accessed_date {
 		title := if args.header { date_accessed_title } else { '' }
-		width := if args.time_iso { date_iso_format.len } else { date_format.len }
+		width := time_format(args).len
 		buffer += right_pad(title, width) + table_pad
 		cols << real_length(buffer) - 1
 	}
 	if args.changed_date {
 		title := if args.header { date_status_title } else { '' }
-		width := if args.time_iso { date_iso_format.len } else { date_format.len }
+		width := time_format(args).len
 		buffer += right_pad(title, width) + table_pad
 		cols << real_length(buffer) - 1
 	}
@@ -247,10 +253,14 @@ fn format_header(args Args, longest Longest) (string, []int) {
 	return header, cols
 }
 
-fn format_header_divider(len int, args Args) string {
-	dim := if args.no_dim { no_style } else { dim_style }
-	divider := '┈'.repeat(len)
-	return format_cell(divider, 0, .left, dim, args)
+fn time_format(args Args) string {
+	return if args.time_iso {
+		date_iso_format
+	} else if args.time_compact {
+		date_compact_format
+	} else {
+		date_format
+	}
 }
 
 fn left_pad(s string, width int) string {
@@ -343,7 +353,7 @@ fn format_time(entry Entry, stat_time StatTime, args Args) string {
 
 	date := time.unix(unix_time)
 		.local()
-		.custom_format(if args.time_iso { date_iso_format } else { date_format })
+		.custom_format(time_format(args))
 
 	dim := if args.no_dim { no_style } else { dim_style }
 	content := if entry.invalid { '?' + space.repeat(date.len - 1) } else { date }
