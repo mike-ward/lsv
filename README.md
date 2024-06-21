@@ -4,6 +4,7 @@
 
 ![Screenshot](screenshot.jpeg)
 
+Table format with block and header option
 ![Screenshot](screenshot2.png)
 
 ## Features
