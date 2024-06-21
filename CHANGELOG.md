@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Table formatted listings
+- Compact date format
 
 ## [2024.1.beta.1] - 2024-06-19
 
