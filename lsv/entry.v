@@ -18,6 +18,7 @@ struct Entry {
 	block       bool
 	socket      bool
 	character   bool
+	unknown     bool
 	link_origin string
 	size_ki     string
 	size_kb     string
@@ -58,8 +59,14 @@ fn make_entry(file string, dir_name string, args Args) Entry {
 	}
 
 	is_dir := filetype == os.FileType.directory
-	is_file := !is_dir && !invalid
+	is_fifo := filetype == .fifo
+	is_block := filetype == .block_device
+	is_socket := filetype == .socket
+	is_character_device := filetype == .character_device
+	is_unknown := filetype == .unknown
 	is_exe := stat.get_mode().bitmask() & 0b001001001 > 0
+	is_file := !is_dir && !is_fifo && !is_block && !is_socket && !is_character_device && !is_unknown
+		&& !is_exe && !invalid
 	indicator := if is_dir && args.dir_indicator { '/' } else { '' }
 
 	return Entry{
@@ -70,14 +77,15 @@ fn make_entry(file string, dir_name string, args Args) Entry {
 		file: is_file
 		link: is_link
 		exe: is_exe
-		fifo: filetype == .fifo
-		block: filetype == .block_device
-		socket: filetype == .socket
-		character: filetype == .character_device
+		fifo: is_fifo
+		block: is_block
+		socket: is_socket
+		character: is_character_device
+		unknown: is_unknown
 		link_origin: link_origin
 		size_ki: if args.size_ki { readable_size(stat.size, true) } else { '' }
 		size_kb: if args.size_kb { readable_size(stat.size, false) } else { '' }
-		checksum: checksum(file, dir_name, args)
+		checksum: if is_file { checksum(file, dir_name, args) } else { '' }
 		invalid: invalid
 	}
 }
@@ -105,6 +113,9 @@ fn readable_size(size u64, si bool) string {
 }
 
 fn checksum(name string, dir_name string, args Args) string {
+	if args.checksum == '' {
+		return ''
+	}
 	file := os.join_path(dir_name, name)
 	bytes := os.read_bytes(file) or { return unknown }
 
