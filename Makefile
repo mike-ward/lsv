@@ -1,5 +1,5 @@
 .PHONY: all
 
 all:
-	@v fmt -w .
+	-mkdir bin
 	@v -prod lsv -o bin/lsv

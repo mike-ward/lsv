@@ -34,7 +34,7 @@ Border format with header option
 
 ### Binaries
 
-Coming soon.
+[Releases](https://github.com/mike-ward/lsv/releases/latest)
 
 ## Help
 ```
