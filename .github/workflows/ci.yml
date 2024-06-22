@@ -70,7 +70,7 @@ jobs:
           path: lsv/lsv/lsv
 
   mac-prod-build:
-    runs-on: mac-latest
+    runs-on: macos-latest
     steps:
       - name: Checkout Latest V
         uses: actions/checkout@v2
