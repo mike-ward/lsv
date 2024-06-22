@@ -1,4 +1,4 @@
-# lsv - `ls` written in Vlang
+# lsv - A Vlang implementation of `ls`
 
 `lsv` is modern alternative to `ls` in the spirit of `exa, eza, lsd, pls, natls, ls-go` and others.
 
