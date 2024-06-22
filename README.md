@@ -105,7 +105,7 @@ environment variable.
 
 ## Why?
 
-I started writing a `ls` implemention for the V Languages CoreUtils project.
+It started with writing a `ls` implemention for the V Language CoreUtils project.
 Coreutils is a reimplementation of the POSIX and GNU utility programs written in the V Language. Everything was going fine until I started having too much fun and down the, "Rabbit Hole" I went.
 
 What's this V language? You can read about it [here](https://vlang.io/), but the short version is it is a simple, fast, safe, compiled language for developing maintainable software. I mentioned `lsv` is not written in Rust. I'm not trashing Rust. Rust is obviously a robust and popular language. However, it's a steep climb to get up to speed and requires a fair bit of cognitive load to use it well.
