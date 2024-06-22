@@ -5,7 +5,7 @@ fn C.GetFinalPathNameByHandleW(hFile voidptr, lpFilePath &u16, nSize u32, dwFlag
 
 const max_path_buffer_size = u32(512)
 
-fn readlink(path string) !string {
+fn read_link(path string) !string {
 	// gets handle with GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0
 	file := C.CreateFile(path.to_wide(), 0x80000000, 1, 0, 3, 0x80, 0)
 	if file != voidptr(-1) {
