@@ -162,16 +162,13 @@ fn format_long_listing(entries []Entry, args Args) {
 		println(line)
 	}
 
-	// stats
-	if !args.no_count {
-		if args.table_format {
-			print(border_row_middle_end(header_len, cols))
-		}
-		statistics(entries, header_len, args)
-	}
-
 	// bottom border
 	print_bottom_border(args, header_len, cols)
+
+	// stats
+	if !args.no_count {
+		statistics(entries, header_len, args)
+	}
 }
 
 fn longest_entries(entries []Entry, args Args) Longest {
@@ -264,7 +261,7 @@ fn format_header(args Args, longest Longest) (string, []int) {
 		cols << real_length(buffer) - 1
 	}
 
-	buffer += right_pad_end(name_title, longest.file) // drop last space
+	buffer += right_pad_end(if args.header { name_title } else { '' }, longest.file) // drop last space
 	header := format_cell(buffer, 0, .left, dim, args)
 	return header, cols
 }
@@ -314,13 +311,7 @@ fn statistics(entries []Entry, len int, args Args) {
 		links := style_string('links', dim, args)
 		stats += ' ${link_count_styled} ${links}'
 	}
-
-	if args.table_format {
-		s := format_cell(stats, len - 4, .left, no_style, args)
-		println('${table_border_divider} ${s}')
-	} else {
-		println(stats)
-	}
+	println(stats)
 }
 
 fn file_flag(entry Entry, args Args) string {

@@ -2,11 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [[2024.1.beta.2] - 2024-20-19]
+## [[2024.1] - 2024-22-19]
 
 ### Added
-- Table formatted listings
-- Compact date format
+- Compact date format option
+- Borders around long formatted listings
 - Checksum (md5, sha1, sha224, sha256, sha512, blake2b)
 
 ## [2024.1.beta.1] - 2024-06-19

@@ -41,8 +41,8 @@ fn format_by_cells(entries []Entry, width int, args Args) {
 			if idx < entries.len {
 				entry := entries[idx]
 				name := format_entry_name(entry, args)
-				line.write_string(format_cell(name, len, .left, get_style_for(entry, args),
-					args))
+				cell := format_cell(name, len, .left, get_style_for(entry, args), args)
+				line.write_string(cell)
 			}
 		}
 		println(line)
@@ -60,7 +60,8 @@ fn format_by_lines(entries []Entry, width int, args Args) {
 			println(line)
 		}
 		name := format_entry_name(entry, args)
-		line.write_string(format_cell(name, len, .left, get_style_for(entry, args), args))
+		cell := format_cell(name, len, .left, get_style_for(entry, args), args)
+		line.write_string(cell)
 	}
 	if entries.len % max_cols != 0 {
 		println(line)

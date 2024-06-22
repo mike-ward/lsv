@@ -32,12 +32,7 @@ fn print_header_border(args Args, len int, cols []int) {
 
 fn print_bottom_border(args Args, len int, cols []int) {
 	if args.table_format {
-		border := if args.no_count {
-			border_row_bottom(len, cols)
-		} else {
-			border_row_bottom(len, []int{})
-		}
-		println(border)
+		print(border_row_bottom(len, cols))
 	}
 }
 

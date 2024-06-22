@@ -34,7 +34,7 @@ Build `lsv` from source. I plan to have binary releases after beta.
 
 ## Help
 ```
-lsv 2024.1.beta.2
+lsv 2024.1
 -----------------------------------------------
 Usage: lsv [options] [FILES]
 
@@ -66,6 +66,7 @@ Filtering and Sorting Options:
 
 Long Listing Options:
   -b                        blank line every 5 rows
+  -B                        add borders to long listing format
   -k                        sizes in kibibytes (1024) (e.g. 1k 234m 2g)
   -K                        sizes in Kilobytes (1000) (e.g. 1kb 234mb 2gb)
   -l                        long listing format
@@ -78,7 +79,8 @@ Long Listing Options:
   -J                        show time in compact format
   -L                        show link's origin information
   -N                        show inodes
-  -T                        table listing format
+      --cs <string>         show file checksum
+                            (md5, sha1, sha224, sha256, sha512, blake2b)
 
       --no-counts           hide file/dir counts
       --no-date             hide date (modified)
@@ -105,10 +107,6 @@ Coreutils is a reimplementation of the POSIX and GNU utility programs written in
 What's this V language? You can read about it [here](https://vlang.io/), but the short version is it is a simple, fast, safe, compiled language for developing maintainable software. I mentioned `lsv` is not written in Rust. I'm not trashing Rust. Rust is obviously a robust and popular language. However, it's a steep climb to get up to speed and requires a fair bit of cognitive load to use it well.
 
 V is the opposite. It has many of the same safty features of Rust, but without the cognitive over head. It's simple, straightfoward syntax makes it a breeze to write. Builds happen in milliseconds, not minutes and hours. You don't need any special build tools like Gradle.
-
-`lsv` exists not because I wanted to write another file lister, but because it was so much darn fun writing in V. I get the same giddy feeling writing code in V as I did 40 years ago when I first discovered C.
-
-So yeah, I'm a V fan boy, but after 40+ years of programming, I find it refreshing to go back something so easy and enjoyable.
 
 Finally, take a look at the `lsv` code base. The entire code base is **1.5K lines** 🧐. Furthermore, the implemention is straightforward. No threading, coroutines or fancy memory management. Even if you don't know V, I'm betting you will understand the code.
 
