@@ -2,4 +2,4 @@
 
 all:
 	-mkdir bin
-	@v -prod lsv -o bin/lsv
+	v -prod lsv -o bin/lsv
