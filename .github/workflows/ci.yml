@@ -35,6 +35,11 @@ jobs:
       - name: Run tests
         shell: bash
         run: cd lsv && v test .
+      - name: Save binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: lsv_windows.exe
+          path: lsv/lsv/lsv
 
   ubuntu-prod-build:
     runs-on: ubuntu-latest
@@ -54,8 +59,12 @@ jobs:
         run: cd lsv/lsv && v -prod .
       - name: Run program
         shell: bash
-        run: cd lsv/lsv && ./lsv      
+        run: cd lsv/lsv && ./lsv
       - name: Run tests
         shell: bash
         run: cd lsv/lsv && v test .
-        
+      - name: Save binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: lsv_nix
+          path: lsv/lsv/lsv
