@@ -1,4 +1,4 @@
-# lsv - Yet another `ls` alternative
+# lsv - `ls` written in Vlang
 
 `lsv` is modern alternative to `ls` in the spirit of `exa, eza, lsd, pls, natls, ls-go` and others.
 
@@ -34,7 +34,7 @@ Border format with header option
 
 ### Binaries
 
-[Releases](https://github.com/mike-ward/lsv/releases/latest)
+[Latest Release](https://github.com/mike-ward/lsv/releases/latest)
 
 ## Help
 ```
