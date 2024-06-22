@@ -4,7 +4,7 @@
 
 ![Screenshot](screenshot.jpeg)
 
-Table format with block and header option
+Border format with header option
 ![Screenshot](screenshot2.png)
 
 ## Features
@@ -24,13 +24,17 @@ Table format with block and header option
 
 ## Installing
 
-Build `lsv` from source. I plan to have binary releases after beta.
+### Build `lsv` from source.
 
 - [Install the V compiler](https://docs.vlang.io/installing-v-from-source.html). It takes a minute or less
 - `git clone https://github.com/mike-ward/lsv.git`
 - `cd lsv`
 - `make`
 - `bin/lsv`
+
+### Binaries
+
+Coming soon.
 
 ## Help
 ```
