@@ -18,7 +18,7 @@ Border format with header option
 - Checksum (md5, sha1, sha224, sha256, sha512, blake2b)
 - Friendly file sizes and dates
 - Nearly as fast as GNU `ls`
-- Robust recursion. Try `lsv -R /`.
+- Robust recursion. Try `lsv -R /`
 - Options similar to `ls`
 - Usual other `ls` features
 
