@@ -39,7 +39,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lsv_windows.exe
-          path: lsv/lsv/lsv
+          path: lsv/lsv/lsv.exe
 
   ubuntu-prod-build:
     runs-on: ubuntu-latest
