@@ -68,3 +68,31 @@ jobs:
         with:
           name: lsv_nix
           path: lsv/lsv/lsv
+
+  mac-prod-build:
+    runs-on: mac-latest
+    steps:
+      - name: Checkout Latest V
+        uses: actions/checkout@v2
+        with:
+            repository: vlang/v
+            path: v
+      - name: Build V
+        run: cd v && make && sudo ./v symlink && cd -
+      - name: Checkout lsv (for tests)
+        uses: actions/checkout@v2
+        with:
+          path: lsv
+      - name: Build all with -prod
+        run: cd lsv/lsv && v -prod .
+      - name: Run program
+        shell: bash
+        run: cd lsv/lsv && ./lsv
+      - name: Run tests
+        shell: bash
+        run: cd lsv/lsv && v test .
+      - name: Save binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: lsv_mac_m1
+          path: lsv/lsv/lsv
