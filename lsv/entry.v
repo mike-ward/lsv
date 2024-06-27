@@ -10,6 +10,7 @@ struct Entry {
 	name        string
 	dir_name    string
 	stat        os.Stat
+	link_stat   os.Stat
 	dir         bool
 	file        bool
 	link        bool
@@ -20,6 +21,7 @@ struct Entry {
 	character   bool
 	unknown     bool
 	link_origin string
+	size        u64
 	size_ki     string
 	size_kb     string
 	checksum    string
@@ -42,9 +44,10 @@ fn get_entries(files []string, args Args) []Entry {
 
 fn make_entry(file string, dir_name string, args Args) Entry {
 	mut invalid := false
-	path := os.join_path(dir_name, file)
+	path := if dir_name == '' { file } else { os.join_path(dir_name, file) }
 
 	stat := os.lstat(path) or {
+		// println('${path} -> ${err.msg()}')
 		invalid = true
 		os.Stat{}
 	}
@@ -52,10 +55,16 @@ fn make_entry(file string, dir_name string, args Args) Entry {
 	filetype := stat.get_filetype()
 	is_link := filetype == os.FileType.symbolic_link
 	link_origin := if is_link { read_link(path) } else { '' }
-	follow_link := is_link && args.link_origin && args.long_format
+	mut size := stat.size
+	mut link_stat := os.Stat{}
 
-	if follow_link && !invalid {
-		return make_entry(link_origin, dir_name, args)
+	if is_link && args.long_format && !invalid {
+		// os.stat follows link
+		link_stat = os.stat(path) or {
+			size = 0
+			os.Stat{}
+		}
+		size = link_stat.size
 	}
 
 	is_dir := filetype == os.FileType.directory
@@ -64,7 +73,7 @@ fn make_entry(file string, dir_name string, args Args) Entry {
 	is_socket := filetype == .socket
 	is_character_device := filetype == .character_device
 	is_unknown := filetype == .unknown
-	is_exe := stat.get_mode().bitmask() & 0b001001001 > 0
+	is_exe := is_executable(stat)
 	is_file := !is_dir && !is_fifo && !is_block && !is_socket && !is_character_device && !is_unknown
 		&& !is_exe && !invalid
 	indicator := if is_dir && args.dir_indicator { '/' } else { '' }
@@ -73,6 +82,7 @@ fn make_entry(file string, dir_name string, args Args) Entry {
 		name: file + indicator
 		dir_name: dir_name
 		stat: stat
+		link_stat: link_stat
 		dir: is_dir
 		file: is_file
 		link: is_link
@@ -83,11 +93,16 @@ fn make_entry(file string, dir_name string, args Args) Entry {
 		character: is_character_device
 		unknown: is_unknown
 		link_origin: link_origin
-		size_ki: if args.size_ki { readable_size(stat.size, true) } else { '' }
-		size_kb: if args.size_kb { readable_size(stat.size, false) } else { '' }
+		size: size
+		size_ki: if args.size_ki { readable_size(size, true) } else { '' }
+		size_kb: if args.size_kb { readable_size(size, false) } else { '' }
 		checksum: if is_file { checksum(file, dir_name, args) } else { '' }
 		invalid: invalid
 	}
+}
+
+fn is_executable(stat os.Stat) bool {
+	return stat.get_mode().bitmask() & 0b001001001 > 0
 }
 
 fn readable_size(size u64, si bool) string {

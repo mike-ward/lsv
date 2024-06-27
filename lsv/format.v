@@ -146,6 +146,35 @@ fn get_style_for(entry Entry, args Args) Style {
 	}
 }
 
+fn get_style_for_link(entry Entry, args Args) Style {
+	if entry.link_stat.size == 0 {
+		return unknown_style
+	}
+
+	filetype := entry.link_stat.get_filetype()
+	is_dir := filetype == os.FileType.directory
+	is_fifo := filetype == .fifo
+	is_block := filetype == .block_device
+	is_socket := filetype == .socket
+	is_character_device := filetype == .character_device
+	is_unknown := filetype == .unknown
+	is_exe := is_executable(entry.link_stat)
+	is_file := !is_dir && !is_fifo && !is_block && !is_socket && !is_character_device && !is_unknown
+		&& !is_exe
+
+	return match true {
+		is_dir { args.style_di }
+		is_exe { args.style_ex }
+		is_fifo { args.style_pi }
+		is_block { args.style_bd }
+		is_character_device { args.style_cd }
+		is_socket { args.style_so }
+		is_unknown { unknown_style }
+		is_file { args.style_fi }
+		else { no_style }
+	}
+}
+
 fn format_entry_name(entry Entry, args Args) string {
 	name := if args.relative_path {
 		os.join_path(entry.dir_name, entry.name)
@@ -154,8 +183,17 @@ fn format_entry_name(entry Entry, args Args) string {
 	}
 
 	return match true {
-		entry.link { '${name} -> ${entry.link_origin}' }
-		args.quote { '"${name}"' }
-		else { name }
+		entry.link {
+			link_style := get_style_for_link(entry, args)
+			missing := if link_style == unknown_style { ' (not found)' } else { '' }
+			link := style_string(entry.link_origin, link_style, args)
+			'${name} -> ${link}${missing}'
+		}
+		args.quote {
+			'"${name}"'
+		}
+		else {
+			name
+		}
 	}
 }

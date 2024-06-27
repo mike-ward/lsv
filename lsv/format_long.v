@@ -1,6 +1,7 @@
 import arrays
 import os
 import strings
+import term
 import time
 import v.mathutil { max }
 
@@ -125,12 +126,15 @@ fn format_long_listing(entries []Entry, args Args) {
 		if !args.no_size {
 			content := match true {
 				entry.invalid { unknown }
-				entry.dir || entry.link || entry.socket || entry.fifo { '-' }
+				entry.dir || entry.socket || entry.fifo { '-' }
 				args.size_ki && args.size_ki && !args.size_kb { entry.size_ki }
 				args.size_kb && args.size_kb { entry.size_kb }
-				else { entry.stat.size.str() }
+				else { entry.size.str() }
 			}
-			size_style := get_style_for(entry, args)
+			size_style := match entry.link_stat.size > 0 {
+				true { get_style_for_link(entry, args) }
+				else { get_style_for(entry, args) }
+			}
 			size := format_cell(content, longest.size, .right, size_style, args)
 			line.write_string(size)
 			line.write_string(space)
@@ -293,6 +297,7 @@ fn right_pad_end(s string, width int) string {
 
 fn statistics(entries []Entry, len int, args Args) {
 	file_count := entries.filter(it.file).len
+	total := arrays.sum(entries.map(if it.file || it.exe { it.stat.size } else { 0 })) or { 0 }
 	dir_count := entries.filter(it.dir).len
 	link_count := entries.filter(it.link).len
 	mut stats := ''
@@ -300,16 +305,26 @@ fn statistics(entries []Entry, len int, args Args) {
 	dim := if args.no_dim { no_style } else { dim_style }
 	file_count_styled := style_string(file_count.str(), args.style_fi, args)
 
-	files := style_string('files', dim, args)
+	file := if file_count == 1 { 'file' } else { 'files' }
+	files := style_string(file, dim, args)
 	dir_count_styled := style_string(dir_count.str(), args.style_di, args)
 
-	dirs := style_string('dirs', dim, args)
-	stats = '${file_count_styled} ${files} ${dir_count_styled} ${dirs}'
+	dir := if dir_count == 1 { 'directory' } else { 'directories' }
+	dirs := style_string(dir, dim, args)
+
+	size := match true {
+		args.size_ki { readable_size(total, true) }
+		args.size_kb { readable_size(total, false) }
+		else { total.str() }
+	}
+
+	totals := style_string(size, args.style_fi, args)
+	stats = '${dir_count_styled} ${dirs} | ${file_count_styled} ${files} [${totals}]'
 
 	if link_count > 0 {
 		link_count_styled := style_string(link_count.str(), args.style_ln, args)
 		links := style_string('links', dim, args)
-		stats += ' ${link_count_styled} ${links}'
+		stats += ' | ${link_count_styled} ${links}'
 	}
 	println(stats)
 }
@@ -390,7 +405,7 @@ fn longest_size_len(entries []Entry, title string, args Args) int {
 		it.dir { 1 }
 		args.size_ki && !args.size_kb { it.size_ki.len }
 		args.size_kb { it.size_kb.len }
-		else { it.stat.size.str().len }
+		else { it.size.str().len }
 	})
 	max := arrays.max(lengths) or { 0 }
 	return if args.no_size || !args.header { max } else { max(max, title.len) }
@@ -403,8 +418,7 @@ fn longest_inode_len(entries []Entry, title string, args Args) int {
 }
 
 fn longest_file_name_len(entries []Entry, title string, args Args) int {
-	lengths := entries.map(it.name.len + it.link_origin.len +
-		if it.link_origin.len > 0 { 4 } else { 0 })
+	lengths := entries.map(term.strip_ansi(format_entry_name(it, args)).len)
 	max := arrays.max(lengths) or { 0 }
 	return if !args.header { max } else { max(max, title.len) }
 }

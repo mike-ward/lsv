@@ -11,8 +11,8 @@ fn sort(entries []Entry, args Args) []Entry {
 		args.sort_size {
 			fn (a &Entry, b &Entry) int {
 				return match true {
-					a.stat.size < b.stat.size { 1 }
-					a.stat.size > b.stat.size { -1 }
+					a.size < b.size { 1 }
+					a.size > b.size { -1 }
 					else { compare_strings(a.name, b.name) }
 				}
 			}

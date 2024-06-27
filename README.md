@@ -38,7 +38,7 @@ Border format with header option
 
 ## Help
 ```
-lsv 2024.1
+lsv 2024.2
 -----------------------------------------------
 Usage: lsv [options] [FILES]
 
@@ -81,7 +81,6 @@ Long Listing Options:
   -H                        show column headers
   -I                        show time in iso format
   -J                        show time in compact format
-  -L                        show link's origin information
   -N                        show inodes
       --cs <string>         show file checksum
                             (md5, sha1, sha224, sha256, sha512, blake2b)

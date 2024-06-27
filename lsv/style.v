@@ -11,6 +11,10 @@ struct Style {
 
 const no_style = Style{}
 
+const unknown_style = Style{
+	fg: fgf('30')
+	bg: bgf('43')
+}
 const dim_style = Style{
 	dim: true
 }

@@ -1,12 +1,1 @@
-{
-	"format_on_save": "on",
-	"formatter": {
-		"external": {
-			"command": "v",
-			"arguments": ["fmt"]
-		}
-	},
-	"autosave": "on_focus_change",
-	"tab_size": 8,
-	"hard_tabs": true
-}
+

@@ -2,7 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [[2024.1] - 2024-22-19]
+## [2024.2]
+### Added
+- Always follow links. Color link and link origin separately
+- Highlight broken links
+- Change format of statistics
+- Add total size of files to statistics
+
+### Fixed
+- Resolve full paths and links bug
+
+## [2024.1] - 2024-22-19
 
 ### Added
 - Compact date format option

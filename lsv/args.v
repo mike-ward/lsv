@@ -41,7 +41,6 @@ struct Args {
 	changed_date      bool
 	header            bool
 	inode             bool
-	link_origin       bool
 	no_count          bool
 	no_date           bool
 	no_group_name     bool
@@ -74,7 +73,7 @@ fn parse_args(args []string) Args {
 	mut fp := flag.new_flag_parser(args)
 
 	fp.application(app_name)
-	fp.version('2024.1')
+	fp.version('2024.2')
 	fp.skip_executable()
 	fp.description('List information about FILES')
 	fp.arguments_description('[FILES]')
@@ -113,7 +112,6 @@ fn parse_args(args []string) Args {
 	header := fp.bool('', `H`, false, 'show column headers')
 	time_iso := fp.bool('', `I`, false, 'show time in iso format')
 	time_compact := fp.bool('', `J`, false, 'show time in compact format')
-	link_origin := fp.bool('', `L`, false, "show link's origin information")
 	inode := fp.bool('', `N`, false, 'show inodes')
 	checksum := fp.string('cs', ` `, '', 'show file checksum\n${flag.space}(md5, sha1, sha224, sha256, sha512, blake2b)\n')
 
@@ -148,7 +146,6 @@ fn parse_args(args []string) Args {
 		files: if files == [] { current_dir } else { files }
 		header: header
 		inode: inode
-		link_origin: link_origin
 		list_by_lines: list_by_lines
 		long_format: long_format
 		no_count: no_count
