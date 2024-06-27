@@ -36,6 +36,10 @@ Border format with header option
 
 [Latest Release](https://github.com/mike-ward/lsv/releases/latest)
 
+### Homebrew
+
+I tried several times to submit to Homebrew but could never get past the CI. Please send a pull request to Homebrew if you know how. Thanks.
+
 ## Help
 ```
 lsv 2024.2
