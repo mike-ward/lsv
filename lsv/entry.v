@@ -73,7 +73,7 @@ fn make_entry(file string, dir_name string, args Args) Entry {
 	is_socket := filetype == .socket
 	is_character_device := filetype == .character_device
 	is_unknown := filetype == .unknown
-	is_exe := is_executable(stat)
+	is_exe := !is_dir && is_executable(stat)
 	is_file := !is_dir && !is_fifo && !is_block && !is_socket && !is_character_device && !is_unknown
 		&& !is_exe && !invalid
 	indicator := if is_dir && args.dir_indicator { '/' } else { '' }

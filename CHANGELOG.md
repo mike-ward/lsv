@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+###[Unreleased]
+
+### Fixed
+- don't include excutable dirs in file byte count
+
 ## [2024.2]
 ### Added
 - Always follow links. Color link and link origin separately
