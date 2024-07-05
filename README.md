@@ -5,7 +5,7 @@
 ![Screenshot](screenshot.jpeg)
 
 Border format with header option
-![Screenshot](screenshot2.png)
+![Screenshot](screenshot2.jpeg)
 
 ## Features
 
