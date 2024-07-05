@@ -60,14 +60,11 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 
 	if is_link && options.long_format && !invalid {
 		// os.stat follows link
-		link_stat = os.stat(path) or {
-			size = 0
-			os.Stat{}
-		}
+		link_stat = os.stat(path) or { os.Stat{} }
 		size = link_stat.size
 	}
 
-	is_dir := filetype == os.FileType.directory
+	is_dir := filetype == .directory
 	is_fifo := filetype == .fifo
 	is_block := filetype == .block_device
 	is_socket := filetype == .socket
@@ -79,25 +76,27 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 	indicator := if is_dir && options.dir_indicator { '/' } else { '' }
 
 	return Entry{
-		name: file + indicator
-		dir_name: dir_name
-		stat: stat
-		link_stat: link_stat
-		dir: is_dir
-		file: is_file
-		link: is_link
-		exe: is_exe
-		fifo: is_fifo
-		block: is_block
-		socket: is_socket
-		character: is_character_device
-		unknown: is_unknown
-		link_origin: link_origin
-		size: size
-		size_ki: if options.size_ki { readable_size(size, true) } else { '' }
-		size_kb: if options.size_kb { readable_size(size, false) } else { '' }
-		checksum: if is_file { checksum(file, dir_name, options) } else { '' }
-		invalid: invalid
+		// vfmt off
+		name: 		file + indicator
+		dir_name: 	dir_name
+		stat: 		stat
+		link_stat: 	link_stat
+		dir: 		is_dir
+		file: 		is_file
+		link: 		is_link
+		exe: 		is_exe
+		fifo: 		is_fifo
+		block: 		is_block
+		socket: 	is_socket
+		character: 	is_character_device
+		unknown: 	is_unknown
+		link_origin: 	link_origin
+		size: 		size
+		size_ki: 	if options.size_ki { readable_size(size, true) } else { '' }
+		size_kb: 	if options.size_kb { readable_size(size, false) } else { '' }
+		checksum: 	if is_file { checksum(file, dir_name, options) } else { '' }
+		invalid: 	invalid
+		// vfmt on
 	}
 }
 
@@ -110,15 +109,16 @@ fn readable_size(size u64, si bool) string {
 	mut sz := f64(size)
 	for unit in ['', 'k', 'm', 'g', 't', 'p', 'e', 'z'] {
 		if sz < kb {
-			readable := if unit == '' {
-				size.str()
-			} else {
-				math.round_sig(sz + .049999, 1).str()
+			readable := match unit == '' {
+				true { size.str() }
+				else { math.round_sig(sz + .049999, 1).str() }
 			}
 			bytes := match true {
+				// vfmt off
 				unit == '' { '' }
-				si { '' }
-				else { 'b' }
+				si 	   { '' }
+				else 	   { 'b' }
+				// vfmt on
 			}
 			return '${readable}${unit}${bytes}'
 		}
