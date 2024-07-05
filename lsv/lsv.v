@@ -16,8 +16,8 @@ fn lsv(entries []Entry, args Args, mut cyclic Set[string]) {
 	sorted_dirs := group_by_dirs.keys().sorted()
 
 	for dir in sorted_dirs {
-		dirs := group_by_dirs[dir]
-		filtered := filter(dirs, args)
+		files := group_by_dirs[dir]
+		filtered := filter(files, args)
 		sorted := sort(filtered, args)
 		if group_by_dirs.len > 1 || args.recursive {
 			print_dir_name(dir, args)

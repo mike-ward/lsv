@@ -1,5 +1,3 @@
-import term
-
 const table_border = `─`
 const table_border_pad_right = ' │' // border for between cells
 const table_border_pad_left = '│ '
@@ -67,8 +65,4 @@ fn format_header_text_border(len int, args Args) string {
 	dim := if args.no_dim { no_style } else { dim_style }
 	divider := '┈'.repeat(len)
 	return format_cell(divider, 0, .left, dim, args)
-}
-
-fn real_length(s string) int {
-	return term.strip_ansi(s).runes().len
 }

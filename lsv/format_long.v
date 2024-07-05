@@ -1,7 +1,5 @@
 import arrays
 import os
-import strings
-import term
 import time
 import v.mathutil { max }
 
@@ -48,78 +46,75 @@ fn format_long_listing(entries []Entry, args Args) {
 	print_header_border(args, header_len, cols)
 
 	dim := if args.no_dim { no_style } else { dim_style }
-	mut line := strings.new_builder(300)
 
 	for idx, entry in entries {
 		// emit blank row every 5th row
 		if args.blocked_output {
 			if idx % block_size == 0 && idx != 0 {
 				if args.table_format {
-					line.write_string(border_row_middle(header_len, cols))
+					print(border_row_middle(header_len, cols))
 				} else {
-					line.write_string('\n')
+					print('\n')
 				}
 			}
 		}
 
 		// left table border
 		if args.table_format {
-			line.write_string(table_border_pad_left)
+			print(table_border_pad_left)
 		}
 
 		// inode
 		if args.inode {
 			content := if entry.invalid { unknown } else { entry.stat.inode.str() }
-			line.write_string(format_cell(content, longest.inode, Align.right, no_style,
-				args))
-			line.write_string(space)
+			print(format_cell(content, longest.inode, Align.right, no_style, args))
+			print(space)
 		}
 
 		// checksum
 		if args.checksum != '' {
 			checksum := format_cell(entry.checksum, longest.checksum, .left, dim, args)
-			line.write_string(checksum)
-			line.write_string(space)
+			print(checksum)
+			print(space)
 		}
 
 		// permissions
 		if !args.no_permissions {
 			flag := file_flag(entry, args)
-			line.write_string(format_cell(flag, 1, .left, no_style, args))
-			line.write_string(space)
+			print(format_cell(flag, 1, .left, no_style, args))
+			print(space)
 
 			content := permissions(entry, args)
-			line.write_string(format_cell(content, permissions_title.len, .right, no_style,
-				args))
-			line.write_string(space)
+			print(format_cell(content, permissions_title.len, .right, no_style, args))
+			print(space)
 		}
 
 		// octal permissions
 		if args.octal_permissions {
 			content := format_octal_permissions(entry, args)
-			line.write_string(format_cell(content, 4, .left, dim, args))
-			line.write_string(space)
+			print(format_cell(content, 4, .left, dim, args))
+			print(space)
 		}
 
 		// hard links
 		if !args.no_hard_links {
 			content := if entry.invalid { unknown } else { '${entry.stat.nlink}' }
-			line.write_string(format_cell(content, longest.nlink, .right, dim, args))
-			line.write_string(space)
+			print(format_cell(content, longest.nlink, .right, dim, args))
+			print(space)
 		}
 
 		// owner name
 		if !args.no_owner_name {
 			content := if entry.invalid { unknown } else { get_owner_name(entry.stat.uid) }
-			line.write_string(format_cell(content, longest.owner_name, .right, dim, args))
-			line.write_string(space)
+			print(format_cell(content, longest.owner_name, .right, dim, args))
+			print(space)
 		}
 
 		// group name
 		if !args.no_group_name {
 			content := if entry.invalid { unknown } else { get_group_name(entry.stat.gid) }
-			line.write_string(format_cell(content, longest.group_name, .right, dim, args))
-			line.write_string(space)
+			print(format_cell(content, longest.group_name, .right, dim, args))
+			print(space)
 		}
 
 		// size
@@ -136,34 +131,32 @@ fn format_long_listing(entries []Entry, args Args) {
 				else { get_style_for(entry, args) }
 			}
 			size := format_cell(content, longest.size, .right, size_style, args)
-			line.write_string(size)
-			line.write_string(space)
+			print(size)
+			print(space)
 		}
 
 		// date/time(modified)
 		if !args.no_date {
-			line.write_string(format_time(entry, .modified, args))
-			line.write_string(space)
+			print(format_time(entry, .modified, args))
+			print(space)
 		}
 
 		// date/time (accessed)
 		if args.accessed_date {
-			line.write_string(format_time(entry, .accessed, args))
-			line.write_string(space)
+			print(format_time(entry, .accessed, args))
+			print(space)
 		}
 
 		// date/time (status change)
 		if args.changed_date {
-			line.write_string(format_time(entry, .changed, args))
-			line.write_string(space)
+			print(format_time(entry, .changed, args))
+			print(space)
 		}
 
 		// file name
 		file_name := format_entry_name(entry, args)
 		file_style := get_style_for(entry, args)
-		line.write_string(format_cell(file_name, longest.file, .left, file_style, args))
-
-		println(line)
+		println(format_cell(file_name, longest.file, .left, file_style, args))
 	}
 
 	// bottom border
@@ -367,13 +360,13 @@ fn file_permission(file_permission os.FilePermission, args Args) string {
 }
 
 fn format_time(entry Entry, stat_time StatTime, args Args) string {
-	unix_time := match stat_time {
+	entry_time := match stat_time {
 		.accessed { entry.stat.atime }
 		.changed { entry.stat.ctime }
 		.modified { entry.stat.mtime }
 	}
 
-	date := time.unix(unix_time)
+	date := time.unix(entry_time)
 		.local()
 		.custom_format(time_format(args))
 
@@ -418,7 +411,7 @@ fn longest_inode_len(entries []Entry, title string, args Args) int {
 }
 
 fn longest_file_name_len(entries []Entry, title string, args Args) int {
-	lengths := entries.map(term.strip_ansi(format_entry_name(it, args)).runes().len)
+	lengths := entries.map(real_length(format_entry_name(it, args)))
 	max := arrays.max(lengths) or { 0 }
 	return if !args.header { max } else { max(max, title.len) }
 }

@@ -128,7 +128,7 @@ fn print_dir_name(name string, args Args) {
 }
 
 fn (entries []Entry) max_name_len(args Args) int {
-	lengths := entries.map(format_entry_name(it, args).runes().len)
+	lengths := entries.map(real_length(format_entry_name(it, args)))
 	return arrays.max(lengths) or { 0 }
 }
 
@@ -198,4 +198,8 @@ fn format_entry_name(entry Entry, args Args) string {
 			'${icon}${name}'
 		}
 	}
+}
+
+fn real_length(s string) int {
+	return term.strip_ansi(s).runes().len
 }
