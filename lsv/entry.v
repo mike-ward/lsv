@@ -29,12 +29,12 @@ struct Entry {
 }
 
 fn get_entries(files []string, args Args) []Entry {
-	mut entries := []Entry{}
+	mut entries := []Entry{cap: 50}
 
 	for file in files {
 		if os.is_dir(file) {
-			other_files := os.ls(file) or { continue }
-			entries << other_files.map(make_entry(it, file, args))
+			dir_files := os.ls(file) or { continue }
+			entries << dir_files.map(make_entry(it, file, args))
 			continue
 		}
 		entries << make_entry(file, '', args)

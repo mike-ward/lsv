@@ -20,6 +20,7 @@ struct Args {
 	table_format   bool
 	width_in_cols  int
 	with_commas    bool
+	icons          bool
 	//
 	// filter, group and sorting options
 	all             bool
@@ -73,7 +74,7 @@ fn parse_args(args []string) Args {
 	mut fp := flag.new_flag_parser(args)
 
 	fp.application(app_name)
-	fp.version('2024.2')
+	fp.version('2024.3')
 	fp.skip_executable()
 	fp.description('List information about FILES')
 	fp.arguments_description('[FILES]')
@@ -81,6 +82,7 @@ fn parse_args(args []string) Args {
 	all := fp.bool('', `a`, false, 'include files starting with .')
 	colorize := fp.bool('', `c`, false, 'color the listing')
 	dir_indicator := fp.bool('', `D`, false, 'append / to directories')
+	icons := fp.bool('', `i`, false, 'show file icon (requires nerd fonts)')
 	with_commas := fp.bool('', `m`, false, 'list of files separated by commas')
 	quote := fp.bool('', `q`, false, 'enclose files in quotes')
 	recursive := fp.bool('', `R`, false, 'list subdirectories recursively')
@@ -145,6 +147,7 @@ fn parse_args(args []string) Args {
 		dirs_first: dirs_first
 		files: if files == [] { current_dir } else { files }
 		header: header
+		icons: icons
 		inode: inode
 		list_by_lines: list_by_lines
 		long_format: long_format

@@ -418,7 +418,7 @@ fn longest_inode_len(entries []Entry, title string, args Args) int {
 }
 
 fn longest_file_name_len(entries []Entry, title string, args Args) int {
-	lengths := entries.map(term.strip_ansi(format_entry_name(it, args)).len)
+	lengths := entries.map(term.strip_ansi(format_entry_name(it, args)).runes().len)
 	max := arrays.max(lengths) or { 0 }
 	return if !args.header { max } else { max(max, title.len) }
 }

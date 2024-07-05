@@ -15,6 +15,7 @@ Border format with header option
 - Table format (long format)
 - Column Headers (long format)
 - Blocked output (long format)
+- Icons
 - Checksum (md5, sha1, sha224, sha256, sha512, blake2b)
 - Friendly file sizes and dates
 - Nearly as fast as GNU `ls`
@@ -42,7 +43,7 @@ I tried several times to submit to Homebrew but could never get past the CI. Ple
 
 ## Help
 ```
-lsv 2024.2
+lsv 2024.3
 -----------------------------------------------
 Usage: lsv [options] [FILES]
 
@@ -52,6 +53,7 @@ Options:
   -a                        include files starting with .
   -c                        color the listing
   -D                        append / to directories
+  -i                        show file icon (requires nerd fonts)
   -m                        list of files separated by commas
   -q                        enclose files in quotes
   -R                        list subdirectories recursively
@@ -115,7 +117,7 @@ What's this V language? You can read about it [here](https://vlang.io/), but the
 
 V is the opposite. It has many of the same safty features of Rust, but without the cognitive over head. It's simple, straightfoward syntax makes it a breeze to write. Builds happen in milliseconds, not minutes and hours. You don't need any special build tools like Gradle.
 
-Finally, take a look at the `lsv` code base. The entire code base is **1.5K lines** 🧐. Furthermore, the implemention is straightforward. No threading, coroutines or fancy memory management. Even if you don't know V, I'm betting you will understand the code.
+Finally, take a look at the `lsv` code base. The entire code base is **2K lines** 🧐. Furthermore, the implemention is straightforward. No threading, coroutines or fancy memory management. Even if you don't know V, I'm betting you will understand the code.
 
 ## Helping Out
 

@@ -2,7 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-###[Unreleased]
+### [2024.3] 2024-07-05
+### Added
+- file icons
 
 ### Fixed
 - don't include excutable dirs in file byte count

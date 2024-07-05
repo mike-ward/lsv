@@ -61,10 +61,18 @@ fn style_string(s string, style Style, args Args) string {
 		return s
 	}
 	mut out := style.fg(s)
-	out = style.bg(out)
-	out = if style.bold { term.bold(out) } else { out }
-	out = if style.ul { term.underline(out) } else { out }
-	out = if style.dim { term.dim(out) } else { out }
+	if style.bg != no_color {
+		out = style.bg(out)
+	}
+	if style.bold {
+		out = term.bold(out)
+	}
+	if style.ul {
+		out = term.underline(out)
+	}
+	if style.dim {
+		out = term.dim(out)
+	}
 	return out
 }
 

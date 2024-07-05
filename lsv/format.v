@@ -128,7 +128,7 @@ fn print_dir_name(name string, args Args) {
 }
 
 fn (entries []Entry) max_name_len(args Args) int {
-	lengths := entries.map(format_entry_name(it, args).len)
+	lengths := entries.map(format_entry_name(it, args).runes().len)
 	return arrays.max(lengths) or { 0 }
 }
 
@@ -182,18 +182,20 @@ fn format_entry_name(entry Entry, args Args) string {
 		entry.name
 	}
 
+	icon := get_icon_for_entry(entry, args)
+
 	return match true {
 		entry.link {
 			link_style := get_style_for_link(entry, args)
 			missing := if link_style == unknown_style { ' (not found)' } else { '' }
 			link := style_string(entry.link_origin, link_style, args)
-			'${name} -> ${link}${missing}'
+			'${icon}${name} -> ${link}${missing}'
 		}
 		args.quote {
-			'"${name}"'
+			'"${icon}${name}"'
 		}
 		else {
-			name
+			'${icon}${name}'
 		}
 	}
 }
