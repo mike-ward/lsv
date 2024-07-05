@@ -1,7 +1,7 @@
 import os
 
-fn get_icon_for_entry(entry Entry, args Args) string {
-	if !args.icons {
+fn get_icon_for_entry(entry Entry, options Options) string {
+	if !options.icons {
 		return ''
 	}
 	ext := os.file_ext(entry.name)

@@ -1,32 +1,36 @@
 import arrays
 import os
 
-fn sort(entries []Entry, args Args) []Entry {
+fn sort(entries []Entry, options Options) []Entry {
 	cmp := match true {
-		args.sort_none {
+		options.sort_none {
 			fn (a &Entry, b &Entry) int {
 				return 0
 			}
 		}
-		args.sort_size {
+		options.sort_size {
 			fn (a &Entry, b &Entry) int {
 				return match true {
+					// vfmt off
 					a.size < b.size { 1 }
 					a.size > b.size { -1 }
-					else { compare_strings(a.name, b.name) }
+					else 		{ compare_strings(a.name, b.name) }
+					// vfmt on
 				}
 			}
 		}
-		args.sort_time {
+		options.sort_time {
 			fn (a &Entry, b &Entry) int {
 				return match true {
+					// vfmt off
 					a.stat.mtime < b.stat.mtime { 1 }
 					a.stat.mtime > b.stat.mtime { -1 }
-					else { compare_strings(a.name, b.name) }
+					else 			    { compare_strings(a.name, b.name) }
+					// vfmt on
 				}
 			}
 		}
-		args.sort_width {
+		options.sort_width {
 			fn (a &Entry, b &Entry) int {
 				a_len := a.name.len + a.link_origin.len + if a.link_origin.len > 0 { 4 } else { 0 }
 				b_len := b.name.len + b.link_origin.len + if b.link_origin.len > 0 { 4 } else { 0 }
@@ -34,12 +38,12 @@ fn sort(entries []Entry, args Args) []Entry {
 				return if result != 0 { result } else { compare_strings(a.name, b.name) }
 			}
 		}
-		args.sort_natural {
+		options.sort_natural {
 			fn (a &Entry, b &Entry) int {
 				return natural_compare(a.name, b.name)
 			}
 		}
-		args.sort_ext {
+		options.sort_ext {
 			fn (a &Entry, b &Entry) int {
 				result := compare_strings(os.file_ext(a.name), os.file_ext(b.name))
 				return if result != 0 { result } else { compare_strings(a.name, b.name) }
@@ -55,8 +59,8 @@ fn sort(entries []Entry, args Args) []Entry {
 	// if directories first option, group entries into dirs and files
 	// The 'dir' and 'file' labels are discriptive. The only thing that
 	// matters is that the 'dir' key collates before the 'file' key
-	groups := arrays.group_by[string, Entry](entries, fn [args] (e Entry) string {
-		return if args.dirs_first && e.dir { 'dir' } else { 'file' }
+	groups := arrays.group_by[string, Entry](entries, fn [options] (e Entry) string {
+		return if options.dirs_first && e.dir { 'dir' } else { 'file' }
 	})
 
 	mut sorted := []Entry{}
@@ -64,5 +68,5 @@ fn sort(entries []Entry, args Args) []Entry {
 		sorted << groups[key].sorted_with_compare(cmp)
 	}
 
-	return if args.sort_reverse { sorted.reverse() } else { sorted }
+	return if options.sort_reverse { sorted.reverse() } else { sorted }
 }

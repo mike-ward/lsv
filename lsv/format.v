@@ -12,22 +12,24 @@ enum Align {
 	right
 }
 
-fn format(entries []Entry, args Args) {
+fn format(entries []Entry, options Options) {
 	w, _ := term.get_terminal_size()
-	args_width_ok := args.width_in_cols > 0 && args.width_in_cols < 1000
-	width := if args_width_ok { args.width_in_cols } else { w }
+	options_width_ok := options.width_in_cols > 0 && options.width_in_cols < 1000
+	width := if options_width_ok { options.width_in_cols } else { w }
 
 	match true {
-		args.long_format { format_long_listing(entries, args) }
-		args.list_by_lines { format_by_lines(entries, width, args) }
-		args.with_commas { format_with_commas(entries, args) }
-		args.one_per_line { format_one_per_line(entries, args) }
-		else { format_by_cells(entries, width, args) }
+		// vfmt off
+		options.long_format 	{ format_long_listing(entries, options) }
+		options.list_by_lines 	{ format_by_lines(entries, width, options) }
+		options.with_commas 	{ format_with_commas(entries, options) }
+		options.one_per_line 	{ format_one_per_line(entries, options) }
+		else 			{ format_by_cells(entries, width, options) }
+		// vfmt on
 	}
 }
 
-fn format_by_cells(entries []Entry, width int, args Args) {
-	len := entries.max_name_len(args) + cell_spacing
+fn format_by_cells(entries []Entry, width int, options Options) {
+	len := entries.max_name_len(options) + cell_spacing
 	cols := mathutil.min(width / len, cell_max)
 	max_cols := mathutil.max(cols, 1)
 	partial_row := entries.len % max_cols != 0
@@ -40,8 +42,8 @@ fn format_by_cells(entries []Entry, width int, args Args) {
 			idx := r + c * max_rows
 			if idx < entries.len {
 				entry := entries[idx]
-				name := format_entry_name(entry, args)
-				cell := format_cell(name, len, .left, get_style_for(entry, args), args)
+				name := format_entry_name(entry, options)
+				cell := format_cell(name, len, .left, get_style_for(entry, options), options)
 				line.write_string(cell)
 			}
 		}
@@ -49,8 +51,8 @@ fn format_by_cells(entries []Entry, width int, args Args) {
 	}
 }
 
-fn format_by_lines(entries []Entry, width int, args Args) {
-	len := entries.max_name_len(args) + cell_spacing
+fn format_by_lines(entries []Entry, width int, options Options) {
+	len := entries.max_name_len(options) + cell_spacing
 	cols := mathutil.min(width / len, cell_max)
 	max_cols := mathutil.max(cols, 1)
 	mut line := strings.new_builder(200)
@@ -59,8 +61,8 @@ fn format_by_lines(entries []Entry, width int, args Args) {
 		if i % max_cols == 0 && i != 0 {
 			println(line)
 		}
-		name := format_entry_name(entry, args)
-		cell := format_cell(name, len, .left, get_style_for(entry, args), args)
+		name := format_entry_name(entry, options)
+		cell := format_cell(name, len, .left, get_style_for(entry, options), options)
 		line.write_string(cell)
 	}
 	if entries.len % max_cols != 0 {
@@ -68,30 +70,30 @@ fn format_by_lines(entries []Entry, width int, args Args) {
 	}
 }
 
-fn format_one_per_line(entries []Entry, args Args) {
+fn format_one_per_line(entries []Entry, options Options) {
 	for entry in entries {
-		println(format_cell(entry.name, 0, .left, get_style_for(entry, args), args))
+		println(format_cell(entry.name, 0, .left, get_style_for(entry, options), options))
 	}
 }
 
-fn format_with_commas(entries []Entry, args Args) {
+fn format_with_commas(entries []Entry, options Options) {
 	mut line := strings.new_builder(200)
 	last := entries.len - 1
 	for i, entry in entries {
 		content := if i < last { '${entry.name}, ' } else { entry.name }
-		line.write_string(format_cell(content, 0, .left, no_style, args))
+		line.write_string(format_cell(content, 0, .left, no_style, options))
 	}
 	println(line)
 }
 
-fn format_cell(s string, width int, align Align, style Style, args Args) string {
-	return match args.table_format {
-		true { format_table_cell(s, width, align, style, args) }
-		else { format_cell_content(s, width, align, style, args) }
+fn format_cell(s string, width int, align Align, style Style, options Options) string {
+	return match options.table_format {
+		true { format_table_cell(s, width, align, style, options) }
+		else { format_cell_content(s, width, align, style, options) }
 	}
 }
 
-fn format_cell_content(s string, width int, align Align, style Style, args Args) string {
+fn format_cell_content(s string, width int, align Align, style Style, options Options) string {
 	mut cell := ''
 	no_ansi_s := term.strip_ansi(s)
 	pad := width - no_ansi_s.runes().len
@@ -100,8 +102,8 @@ fn format_cell_content(s string, width int, align Align, style Style, args Args)
 		cell += space.repeat(pad)
 	}
 
-	cell += if args.colorize {
-		style_string(s, style, args)
+	cell += if options.colorize {
+		style_string(s, style, options)
 	} else {
 		no_ansi_s
 	}
@@ -113,40 +115,42 @@ fn format_cell_content(s string, width int, align Align, style Style, args Args)
 	return cell
 }
 
-fn format_table_cell(s string, width int, align Align, style Style, args Args) string {
-	cell := format_cell_content(s, width, align, style, args)
+fn format_table_cell(s string, width int, align Align, style Style, options Options) string {
+	cell := format_cell_content(s, width, align, style, options)
 	return '${cell}${table_border_pad_right}'
 }
 
 // surrounds a cell with table borders
-fn print_dir_name(name string, args Args) {
+fn print_dir_name(name string, options Options) {
 	if name.len > 0 {
 		print('\n')
-		nm := if args.colorize { style_string(name, args.style_di, args) } else { name }
+		nm := if options.colorize { style_string(name, options.style_di, options) } else { name }
 		println('${nm}:')
 	}
 }
 
-fn (entries []Entry) max_name_len(args Args) int {
-	lengths := entries.map(real_length(format_entry_name(it, args)))
+fn (entries []Entry) max_name_len(options Options) int {
+	lengths := entries.map(real_length(format_entry_name(it, options)))
 	return arrays.max(lengths) or { 0 }
 }
 
-fn get_style_for(entry Entry, args Args) Style {
+fn get_style_for(entry Entry, options Options) Style {
 	return match true {
-		entry.link { args.style_ln }
-		entry.dir { args.style_di }
-		entry.exe { args.style_ex }
-		entry.fifo { args.style_pi }
-		entry.block { args.style_bd }
-		entry.character { args.style_cd }
-		entry.socket { args.style_so }
-		entry.file { args.style_fi }
-		else { no_style }
+		// vfmt off
+		entry.link 	{ options.style_ln }
+		entry.dir 	{ options.style_di }
+		entry.exe 	{ options.style_ex }
+		entry.fifo 	{ options.style_pi }
+		entry.block 	{ options.style_bd }
+		entry.character { options.style_cd }
+		entry.socket 	{ options.style_so }
+		entry.file 	{ options.style_fi }
+		else 		{ no_style }
+		// vfmt on
 	}
 }
 
-fn get_style_for_link(entry Entry, args Args) Style {
+fn get_style_for_link(entry Entry, options Options) Style {
 	if entry.link_stat.size == 0 {
 		return unknown_style
 	}
@@ -163,35 +167,37 @@ fn get_style_for_link(entry Entry, args Args) Style {
 		&& !is_exe
 
 	return match true {
-		is_dir { args.style_di }
-		is_exe { args.style_ex }
-		is_fifo { args.style_pi }
-		is_block { args.style_bd }
-		is_character_device { args.style_cd }
-		is_socket { args.style_so }
-		is_unknown { unknown_style }
-		is_file { args.style_fi }
-		else { no_style }
+		// vfmt off
+		is_dir 		    { options.style_di }
+		is_exe 		    { options.style_ex }
+		is_fifo 	    { options.style_pi }
+		is_block 	    { options.style_bd }
+		is_character_device { options.style_cd }
+		is_socket 	    { options.style_so }
+		is_unknown 	    { unknown_style }
+		is_file 	    { options.style_fi }
+		else 		    { no_style }
+		// vfmt on
 	}
 }
 
-fn format_entry_name(entry Entry, args Args) string {
-	name := if args.relative_path {
+fn format_entry_name(entry Entry, options Options) string {
+	name := if options.relative_path {
 		os.join_path(entry.dir_name, entry.name)
 	} else {
 		entry.name
 	}
 
-	icon := get_icon_for_entry(entry, args)
+	icon := get_icon_for_entry(entry, options)
 
 	return match true {
 		entry.link {
-			link_style := get_style_for_link(entry, args)
+			link_style := get_style_for_link(entry, options)
 			missing := if link_style == unknown_style { ' (not found)' } else { '' }
-			link := style_string(entry.link_origin, link_style, args)
+			link := style_string(entry.link_origin, link_style, options)
 			'${icon}${name} -> ${link}${missing}'
 		}
-		args.quote {
+		options.quote {
 			'"${icon}${name}"'
 		}
 		else {

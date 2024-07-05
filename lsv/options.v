@@ -6,7 +6,7 @@ import term
 const app_name = 'lsv'
 const current_dir = ['.']
 
-struct Args {
+struct Options {
 	// display options
 	blocked_output bool
 	colorize       bool
@@ -70,7 +70,7 @@ struct Args {
 	files []string
 }
 
-fn parse_args(args []string) Args {
+fn parse_args(args []string) Options {
 	mut fp := flag.new_flag_parser(args)
 
 	fp.application(app_name)
@@ -136,7 +136,7 @@ fn parse_args(args []string) Args {
 	style_map := make_style_map()
 	can_show_color_on_stdout := term.can_show_color_on_stdout()
 
-	return Args{
+	return Options{
 		all: all
 		accessed_date: accessed_date
 		blocked_output: blocked_output

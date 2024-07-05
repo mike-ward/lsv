@@ -37,236 +37,239 @@ enum StatTime {
 	modified
 }
 
-fn format_long_listing(entries []Entry, args Args) {
-	longest := longest_entries(entries, args)
-	header, cols := format_header(args, longest)
+fn format_long_listing(entries []Entry, options Options) {
+	longest := longest_entries(entries, options)
+	header, cols := format_header(options, longest)
 	header_len := real_length(header)
 
-	print_header(header, args, header_len, cols)
-	print_header_border(args, header_len, cols)
+	print_header(header, options, header_len, cols)
+	print_header_border(options, header_len, cols)
 
-	dim := if args.no_dim { no_style } else { dim_style }
+	dim := if options.no_dim { no_style } else { dim_style }
 
 	for idx, entry in entries {
 		// emit blank row every 5th row
-		if args.blocked_output {
+		if options.blocked_output {
 			if idx % block_size == 0 && idx != 0 {
-				if args.table_format {
-					print(border_row_middle(header_len, cols))
-				} else {
-					print('\n')
+				match options.table_format {
+					true { print(border_row_middle(header_len, cols)) }
+					else { print('\n') }
 				}
 			}
 		}
 
 		// left table border
-		if args.table_format {
+		if options.table_format {
 			print(table_border_pad_left)
 		}
 
 		// inode
-		if args.inode {
+		if options.inode {
 			content := if entry.invalid { unknown } else { entry.stat.inode.str() }
-			print(format_cell(content, longest.inode, Align.right, no_style, args))
+			print(format_cell(content, longest.inode, Align.right, no_style, options))
 			print(space)
 		}
 
 		// checksum
-		if args.checksum != '' {
-			checksum := format_cell(entry.checksum, longest.checksum, .left, dim, args)
+		if options.checksum != '' {
+			checksum := format_cell(entry.checksum, longest.checksum, .left, dim, options)
 			print(checksum)
 			print(space)
 		}
 
 		// permissions
-		if !args.no_permissions {
-			flag := file_flag(entry, args)
-			print(format_cell(flag, 1, .left, no_style, args))
+		if !options.no_permissions {
+			flag := file_flag(entry, options)
+			print(format_cell(flag, 1, .left, no_style, options))
 			print(space)
 
-			content := permissions(entry, args)
-			print(format_cell(content, permissions_title.len, .right, no_style, args))
+			content := permissions(entry, options)
+			print(format_cell(content, permissions_title.len, .right, no_style, options))
 			print(space)
 		}
 
 		// octal permissions
-		if args.octal_permissions {
-			content := format_octal_permissions(entry, args)
-			print(format_cell(content, 4, .left, dim, args))
+		if options.octal_permissions {
+			content := format_octal_permissions(entry, options)
+			print(format_cell(content, 4, .left, dim, options))
 			print(space)
 		}
 
 		// hard links
-		if !args.no_hard_links {
+		if !options.no_hard_links {
 			content := if entry.invalid { unknown } else { '${entry.stat.nlink}' }
-			print(format_cell(content, longest.nlink, .right, dim, args))
+			print(format_cell(content, longest.nlink, .right, dim, options))
 			print(space)
 		}
 
 		// owner name
-		if !args.no_owner_name {
+		if !options.no_owner_name {
 			content := if entry.invalid { unknown } else { get_owner_name(entry.stat.uid) }
-			print(format_cell(content, longest.owner_name, .right, dim, args))
+			print(format_cell(content, longest.owner_name, .right, dim, options))
 			print(space)
 		}
 
 		// group name
-		if !args.no_group_name {
+		if !options.no_group_name {
 			content := if entry.invalid { unknown } else { get_group_name(entry.stat.gid) }
-			print(format_cell(content, longest.group_name, .right, dim, args))
+			print(format_cell(content, longest.group_name, .right, dim, options))
 			print(space)
 		}
 
 		// size
-		if !args.no_size {
+		if !options.no_size {
 			content := match true {
-				entry.invalid { unknown }
-				entry.dir || entry.socket || entry.fifo { '-' }
-				args.size_ki && args.size_ki && !args.size_kb { entry.size_ki }
-				args.size_kb && args.size_kb { entry.size_kb }
-				else { entry.size.str() }
+				// vfmt off
+				entry.invalid 						{ unknown }
+				entry.dir || entry.socket || entry.fifo 		{ '-' }
+				options.size_ki && options.size_ki && !options.size_kb 	{ entry.size_ki }
+				options.size_kb && options.size_kb 			{ entry.size_kb }
+				else 							{ entry.size.str() }
+				// vfmt on
 			}
 			size_style := match entry.link_stat.size > 0 {
-				true { get_style_for_link(entry, args) }
-				else { get_style_for(entry, args) }
+				true { get_style_for_link(entry, options) }
+				else { get_style_for(entry, options) }
 			}
-			size := format_cell(content, longest.size, .right, size_style, args)
+			size := format_cell(content, longest.size, .right, size_style, options)
 			print(size)
 			print(space)
 		}
 
 		// date/time(modified)
-		if !args.no_date {
-			print(format_time(entry, .modified, args))
+		if !options.no_date {
+			print(format_time(entry, .modified, options))
 			print(space)
 		}
 
 		// date/time (accessed)
-		if args.accessed_date {
-			print(format_time(entry, .accessed, args))
+		if options.accessed_date {
+			print(format_time(entry, .accessed, options))
 			print(space)
 		}
 
 		// date/time (status change)
-		if args.changed_date {
-			print(format_time(entry, .changed, args))
+		if options.changed_date {
+			print(format_time(entry, .changed, options))
 			print(space)
 		}
 
 		// file name
-		file_name := format_entry_name(entry, args)
-		file_style := get_style_for(entry, args)
-		println(format_cell(file_name, longest.file, .left, file_style, args))
+		file_name := format_entry_name(entry, options)
+		file_style := get_style_for(entry, options)
+		println(format_cell(file_name, longest.file, .left, file_style, options))
 	}
 
 	// bottom border
-	print_bottom_border(args, header_len, cols)
+	print_bottom_border(options, header_len, cols)
 
 	// stats
-	if !args.no_count {
-		statistics(entries, header_len, args)
+	if !options.no_count {
+		statistics(entries, header_len, options)
 	}
 }
 
-fn longest_entries(entries []Entry, args Args) Longest {
+fn longest_entries(entries []Entry, options Options) Longest {
 	return Longest{
-		inode: longest_inode_len(entries, inode_title, args)
-		nlink: longest_nlink_len(entries, links_title, args)
-		owner_name: longest_owner_name_len(entries, owner_title, args)
-		group_name: longest_group_name_len(entries, group_title, args)
-		size: longest_size_len(entries, size_title, args)
-		checksum: longest_checksum_len(entries, args.checksum, args)
-		file: longest_file_name_len(entries, name_title, args)
+		// vfmt off
+		inode: 	    longest_inode_len(entries, inode_title, options)
+		nlink: 	    longest_nlink_len(entries, links_title, options)
+		owner_name: longest_owner_name_len(entries, owner_title, options)
+		group_name: longest_group_name_len(entries, group_title, options)
+		size: 	    longest_size_len(entries, size_title, options)
+		checksum:   longest_checksum_len(entries, options.checksum, options)
+		file: 	    longest_file_name_len(entries, name_title, options)
+		// vfmt on
 	}
 }
 
-fn print_header(header string, args Args, len int, cols []int) {
-	if args.header {
-		if args.table_format {
+fn print_header(header string, options Options, len int, cols []int) {
+	if options.header {
+		if options.table_format {
 			print(border_row_top(len, cols))
 		}
 		println(header)
 	}
 }
 
-fn format_header(args Args, longest Longest) (string, []int) {
+fn format_header(options Options, longest Longest) (string, []int) {
 	mut buffer := ''
 	mut cols := []int{}
-	dim := if args.no_dim || args.table_format { no_style } else { dim_style }
-	table_pad := if args.table_format { table_border_pad_left } else { '' }
+	dim := if options.no_dim || options.table_format { no_style } else { dim_style }
+	table_pad := if options.table_format { table_border_pad_left } else { '' }
 
-	if args.table_format {
+	if options.table_format {
 		buffer += table_border_pad_left
 	}
-	if args.inode {
-		title := if args.header { inode_title } else { '' }
+	if options.inode {
+		title := if options.header { inode_title } else { '' }
 		buffer += left_pad(title, longest.inode) + table_pad
 		cols << real_length(buffer) - 1
 	}
-	if args.checksum != '' {
-		title := if args.header { args.checksum.capitalize() } else { '' }
+	if options.checksum != '' {
+		title := if options.header { options.checksum.capitalize() } else { '' }
 		width := longest.checksum
 		buffer += right_pad(title, width) + table_pad
 		cols << real_length(buffer) - 1
 	}
-	if !args.no_permissions {
+	if !options.no_permissions {
 		buffer += 'T ${table_pad}'
 		cols << real_length(buffer) - 1
 		buffer += left_pad(permissions_title, permissions_title.len) + table_pad
 		cols << real_length(buffer) - 1
 	}
-	if args.octal_permissions {
+	if options.octal_permissions {
 		buffer += left_pad(mask_title, mask_title.len) + table_pad
 		cols << real_length(buffer) - 1
 	}
-	if !args.no_hard_links {
-		title := if args.header { links_title } else { '' }
+	if !options.no_hard_links {
+		title := if options.header { links_title } else { '' }
 		buffer += left_pad(title, longest.nlink) + table_pad
 		cols << real_length(buffer) - 1
 	}
-	if !args.no_owner_name {
-		title := if args.header { owner_title } else { '' }
+	if !options.no_owner_name {
+		title := if options.header { owner_title } else { '' }
 		buffer += left_pad(title, longest.owner_name) + table_pad
 		cols << real_length(buffer) - 1
 	}
-	if !args.no_group_name {
-		title := if args.header { group_title } else { '' }
+	if !options.no_group_name {
+		title := if options.header { group_title } else { '' }
 		buffer += left_pad(title, longest.group_name) + table_pad
 		cols << real_length(buffer) - 1
 	}
-	if !args.no_size {
-		title := if args.header { size_title } else { '' }
+	if !options.no_size {
+		title := if options.header { size_title } else { '' }
 		buffer += left_pad(title, longest.size) + table_pad
 		cols << real_length(buffer) - 1
 	}
-	if !args.no_date {
-		title := if args.header { date_modified_title } else { '' }
-		width := time_format(args).len
+	if !options.no_date {
+		title := if options.header { date_modified_title } else { '' }
+		width := time_format(options).len
 		buffer += right_pad(title, width) + table_pad
 		cols << real_length(buffer) - 1
 	}
-	if args.accessed_date {
-		title := if args.header { date_accessed_title } else { '' }
-		width := time_format(args).len
+	if options.accessed_date {
+		title := if options.header { date_accessed_title } else { '' }
+		width := time_format(options).len
 		buffer += right_pad(title, width) + table_pad
 		cols << real_length(buffer) - 1
 	}
-	if args.changed_date {
-		title := if args.header { date_status_title } else { '' }
-		width := time_format(args).len
+	if options.changed_date {
+		title := if options.header { date_status_title } else { '' }
+		width := time_format(options).len
 		buffer += right_pad(title, width) + table_pad
 		cols << real_length(buffer) - 1
 	}
 
-	buffer += right_pad_end(if args.header { name_title } else { '' }, longest.file) // drop last space
-	header := format_cell(buffer, 0, .left, dim, args)
+	buffer += right_pad_end(if options.header { name_title } else { '' }, longest.file) // drop last space
+	header := format_cell(buffer, 0, .left, dim, options)
 	return header, cols
 }
 
-fn time_format(args Args) string {
-	return if args.time_iso {
+fn time_format(options Options) string {
+	return if options.time_iso {
 		date_iso_format
-	} else if args.time_compact {
+	} else if options.time_compact {
 		date_compact_format
 	} else {
 		date_format
@@ -288,78 +291,80 @@ fn right_pad_end(s string, width int) string {
 	return if pad > 0 { s + space.repeat(pad) } else { s }
 }
 
-fn statistics(entries []Entry, len int, args Args) {
+fn statistics(entries []Entry, len int, options Options) {
 	file_count := entries.filter(it.file).len
 	total := arrays.sum(entries.map(if it.file || it.exe { it.stat.size } else { 0 })) or { 0 }
 	dir_count := entries.filter(it.dir).len
 	link_count := entries.filter(it.link).len
 	mut stats := ''
 
-	dim := if args.no_dim { no_style } else { dim_style }
-	file_count_styled := style_string(file_count.str(), args.style_fi, args)
+	dim := if options.no_dim { no_style } else { dim_style }
+	file_count_styled := style_string(file_count.str(), options.style_fi, options)
 
 	file := if file_count == 1 { 'file' } else { 'files' }
-	files := style_string(file, dim, args)
-	dir_count_styled := style_string(dir_count.str(), args.style_di, args)
+	files := style_string(file, dim, options)
+	dir_count_styled := style_string(dir_count.str(), options.style_di, options)
 
 	dir := if dir_count == 1 { 'directory' } else { 'directories' }
-	dirs := style_string(dir, dim, args)
+	dirs := style_string(dir, dim, options)
 
 	size := match true {
-		args.size_ki { readable_size(total, true) }
-		args.size_kb { readable_size(total, false) }
+		options.size_ki { readable_size(total, true) }
+		options.size_kb { readable_size(total, false) }
 		else { total.str() }
 	}
 
-	totals := style_string(size, args.style_fi, args)
+	totals := style_string(size, options.style_fi, options)
 	stats = '${dir_count_styled} ${dirs} | ${file_count_styled} ${files} [${totals}]'
 
 	if link_count > 0 {
-		link_count_styled := style_string(link_count.str(), args.style_ln, args)
-		links := style_string('links', dim, args)
+		link_count_styled := style_string(link_count.str(), options.style_ln, options)
+		links := style_string('links', dim, options)
 		stats += ' | ${link_count_styled} ${links}'
 	}
 	println(stats)
 }
 
-fn file_flag(entry Entry, args Args) string {
+fn file_flag(entry Entry, options Options) string {
 	return match true {
-		entry.invalid { unknown }
-		entry.link { style_string('l', args.style_ln, args) }
-		entry.dir { style_string('d', args.style_di, args) }
-		entry.exe { style_string('x', args.style_ex, args) }
-		entry.fifo { style_string('p', args.style_pi, args) }
-		entry.block { style_string('b', args.style_bd, args) }
-		entry.character { style_string('c', args.style_cd, args) }
-		entry.socket { style_string('s', args.style_so, args) }
-		entry.file { style_string('f', args.style_fi, args) }
-		else { ' ' }
+		// vfmt off
+		entry.invalid 	{ unknown }
+		entry.link 	{ style_string('l', options.style_ln, options) }
+		entry.dir 	{ style_string('d', options.style_di, options) }
+		entry.exe 	{ style_string('x', options.style_ex, options) }
+		entry.fifo 	{ style_string('p', options.style_pi, options) }
+		entry.block 	{ style_string('b', options.style_bd, options) }
+		entry.character { style_string('c', options.style_cd, options) }
+		entry.socket 	{ style_string('s', options.style_so, options) }
+		entry.file	{ style_string('f', options.style_fi, options) }
+		else 		{ ' ' }
+		// vfmt on
 	}
 }
 
-fn format_octal_permissions(entry Entry, args Args) string {
+fn format_octal_permissions(entry Entry, options Options) string {
 	mode := entry.stat.get_mode()
 	return '0${mode.owner.bitmask()}${mode.group.bitmask()}${mode.others.bitmask()}'
 }
 
-fn permissions(entry Entry, args Args) string {
+fn permissions(entry Entry, options Options) string {
 	mode := entry.stat.get_mode()
-	owner := file_permission(mode.owner, args)
-	group := file_permission(mode.group, args)
-	other := file_permission(mode.others, args)
+	owner := file_permission(mode.owner, options)
+	group := file_permission(mode.group, options)
+	other := file_permission(mode.others, options)
 	return '${owner} ${group} ${other}'
 }
 
-fn file_permission(file_permission os.FilePermission, args Args) string {
-	dim := if args.no_dim { no_style } else { dim_style }
-	dash := style_string('-', dim, args)
-	r := if file_permission.read { style_string('r', args.style_ln, args) } else { dash }
-	w := if file_permission.write { style_string('w', args.style_fi, args) } else { dash }
-	x := if file_permission.execute { style_string('x', args.style_ex, args) } else { dash }
+fn file_permission(file_permission os.FilePermission, options Options) string {
+	dim := if options.no_dim { no_style } else { dim_style }
+	dash := style_string('-', dim, options)
+	r := if file_permission.read { style_string('r', options.style_ln, options) } else { dash }
+	w := if file_permission.write { style_string('w', options.style_fi, options) } else { dash }
+	x := if file_permission.execute { style_string('x', options.style_ex, options) } else { dash }
 	return '${r}${w}${x}'
 }
 
-fn format_time(entry Entry, stat_time StatTime, args Args) string {
+fn format_time(entry Entry, stat_time StatTime, options Options) string {
 	entry_time := match stat_time {
 		.accessed { entry.stat.atime }
 		.changed { entry.stat.ctime }
@@ -368,56 +373,56 @@ fn format_time(entry Entry, stat_time StatTime, args Args) string {
 
 	date := time.unix(entry_time)
 		.local()
-		.custom_format(time_format(args))
+		.custom_format(time_format(options))
 
-	dim := if args.no_dim { no_style } else { dim_style }
+	dim := if options.no_dim { no_style } else { dim_style }
 	content := if entry.invalid { '?' + space.repeat(date.len - 1) } else { date }
-	return format_cell(content, date.len, .left, dim, args)
+	return format_cell(content, date.len, .left, dim, options)
 }
 
-fn longest_nlink_len(entries []Entry, title string, args Args) int {
+fn longest_nlink_len(entries []Entry, title string, options Options) int {
 	lengths := entries.map(it.stat.nlink.str().len)
 	max := arrays.max(lengths) or { 0 }
-	return if args.no_hard_links || !args.header { max } else { max(max, title.len) }
+	return if options.no_hard_links || !options.header { max } else { max(max, title.len) }
 }
 
-fn longest_owner_name_len(entries []Entry, title string, args Args) int {
+fn longest_owner_name_len(entries []Entry, title string, options Options) int {
 	lengths := entries.map(get_owner_name(it.stat.uid).len)
 	max := arrays.max(lengths) or { 0 }
-	return if args.no_owner_name || !args.header { max } else { max(max, title.len) }
+	return if options.no_owner_name || !options.header { max } else { max(max, title.len) }
 }
 
-fn longest_group_name_len(entries []Entry, title string, args Args) int {
+fn longest_group_name_len(entries []Entry, title string, options Options) int {
 	lengths := entries.map(get_group_name(it.stat.gid).len)
 	max := arrays.max(lengths) or { 0 }
-	return if args.no_group_name || !args.header { max } else { max(max, title.len) }
+	return if options.no_group_name || !options.header { max } else { max(max, title.len) }
 }
 
-fn longest_size_len(entries []Entry, title string, args Args) int {
+fn longest_size_len(entries []Entry, title string, options Options) int {
 	lengths := entries.map(match true {
 		it.dir { 1 }
-		args.size_ki && !args.size_kb { it.size_ki.len }
-		args.size_kb { it.size_kb.len }
+		options.size_ki && !options.size_kb { it.size_ki.len }
+		options.size_kb { it.size_kb.len }
 		else { it.size.str().len }
 	})
 	max := arrays.max(lengths) or { 0 }
-	return if args.no_size || !args.header { max } else { max(max, title.len) }
+	return if options.no_size || !options.header { max } else { max(max, title.len) }
 }
 
-fn longest_inode_len(entries []Entry, title string, args Args) int {
+fn longest_inode_len(entries []Entry, title string, options Options) int {
 	lengths := entries.map(it.stat.inode.str().len)
 	max := arrays.max(lengths) or { 0 }
-	return if !args.inode || !args.header { max } else { max(max, title.len) }
+	return if !options.inode || !options.header { max } else { max(max, title.len) }
 }
 
-fn longest_file_name_len(entries []Entry, title string, args Args) int {
-	lengths := entries.map(real_length(format_entry_name(it, args)))
+fn longest_file_name_len(entries []Entry, title string, options Options) int {
+	lengths := entries.map(real_length(format_entry_name(it, options)))
 	max := arrays.max(lengths) or { 0 }
-	return if !args.header { max } else { max(max, title.len) }
+	return if !options.header { max } else { max(max, title.len) }
 }
 
-fn longest_checksum_len(entries []Entry, title string, args Args) int {
+fn longest_checksum_len(entries []Entry, title string, options Options) int {
 	lengths := entries.map(it.checksum.len)
 	max := arrays.max(lengths) or { 0 }
-	return if !args.header { max } else { max(max, title.len) }
+	return if !options.header { max } else { max(max, title.len) }
 }

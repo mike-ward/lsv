@@ -28,21 +28,21 @@ struct Entry {
 	invalid     bool // lstat could not access
 }
 
-fn get_entries(files []string, args Args) []Entry {
+fn get_entries(files []string, options Options) []Entry {
 	mut entries := []Entry{cap: 50}
 
 	for file in files {
 		if os.is_dir(file) {
 			dir_files := os.ls(file) or { continue }
-			entries << dir_files.map(make_entry(it, file, args))
+			entries << dir_files.map(make_entry(it, file, options))
 			continue
 		}
-		entries << make_entry(file, '', args)
+		entries << make_entry(file, '', options)
 	}
 	return entries
 }
 
-fn make_entry(file string, dir_name string, args Args) Entry {
+fn make_entry(file string, dir_name string, options Options) Entry {
 	mut invalid := false
 	path := if dir_name == '' { file } else { os.join_path(dir_name, file) }
 
@@ -58,7 +58,7 @@ fn make_entry(file string, dir_name string, args Args) Entry {
 	mut size := stat.size
 	mut link_stat := os.Stat{}
 
-	if is_link && args.long_format && !invalid {
+	if is_link && options.long_format && !invalid {
 		// os.stat follows link
 		link_stat = os.stat(path) or {
 			size = 0
@@ -76,7 +76,7 @@ fn make_entry(file string, dir_name string, args Args) Entry {
 	is_exe := !is_dir && is_executable(stat)
 	is_file := !is_dir && !is_fifo && !is_block && !is_socket && !is_character_device && !is_unknown
 		&& !is_exe && !invalid
-	indicator := if is_dir && args.dir_indicator { '/' } else { '' }
+	indicator := if is_dir && options.dir_indicator { '/' } else { '' }
 
 	return Entry{
 		name: file + indicator
@@ -94,9 +94,9 @@ fn make_entry(file string, dir_name string, args Args) Entry {
 		unknown: is_unknown
 		link_origin: link_origin
 		size: size
-		size_ki: if args.size_ki { readable_size(size, true) } else { '' }
-		size_kb: if args.size_kb { readable_size(size, false) } else { '' }
-		checksum: if is_file { checksum(file, dir_name, args) } else { '' }
+		size_ki: if options.size_ki { readable_size(size, true) } else { '' }
+		size_kb: if options.size_kb { readable_size(size, false) } else { '' }
+		checksum: if is_file { checksum(file, dir_name, options) } else { '' }
 		invalid: invalid
 	}
 }
@@ -127,20 +127,22 @@ fn readable_size(size u64, si bool) string {
 	return size.str()
 }
 
-fn checksum(name string, dir_name string, args Args) string {
-	if args.checksum == '' {
+fn checksum(name string, dir_name string, options Options) string {
+	if options.checksum == '' {
 		return ''
 	}
 	file := os.join_path(dir_name, name)
 	bytes := os.read_bytes(file) or { return unknown }
 
-	return match args.checksum {
-		'md5' { md5.sum(bytes).hex() }
-		'sha1' { sha1.sum(bytes).hex() }
-		'sha224' { sha256.sum224(bytes).hex() }
-		'sha256' { sha256.sum256(bytes).hex() }
-		'sha512' { sha512.sum512(bytes).hex() }
+	return match options.checksum {
+		// vfmt off
+		'md5'     { md5.sum(bytes).hex() }
+		'sha1'    { sha1.sum(bytes).hex() }
+		'sha224'  { sha256.sum224(bytes).hex() }
+		'sha256'  { sha256.sum256(bytes).hex() }
+		'sha512'  { sha512.sum512(bytes).hex() }
 		'blake2b' { blake2b.sum256(bytes).hex() }
-		else { unknown }
+		else      { unknown }
+		// vfmt on
 	}
 }

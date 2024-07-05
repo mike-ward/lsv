@@ -13,23 +13,23 @@ const table_border_u_t = `┴`
 const table_border_cross = `┼`
 const table_border_size = 2
 
-fn print_header_border(args Args, len int, cols []int) {
-	if args.table_format {
-		border := if args.header {
+fn print_header_border(options Options, len int, cols []int) {
+	if options.table_format {
+		border := if options.header {
 			border_row_middle(len, cols)
 		} else {
 			border_row_top(len, cols)
 		}
 		print(border)
 	} else {
-		if args.header {
-			println(format_header_text_border(len, args))
+		if options.header {
+			println(format_header_text_border(len, options))
 		}
 	}
 }
 
-fn print_bottom_border(args Args, len int, cols []int) {
-	if args.table_format {
+fn print_bottom_border(options Options, len int, cols []int) {
+	if options.table_format {
 		print(border_row_bottom(len, cols))
 	}
 }
@@ -61,8 +61,8 @@ fn format_table_border(len int, cols []int, divider rune, start rune, end rune) 
 	return '${border.string()}\n'
 }
 
-fn format_header_text_border(len int, args Args) string {
-	dim := if args.no_dim { no_style } else { dim_style }
+fn format_header_text_border(len int, options Options) string {
+	dim := if options.no_dim { no_style } else { dim_style }
 	divider := '┈'.repeat(len)
-	return format_cell(divider, 0, .left, dim, args)
+	return format_cell(divider, 0, .left, dim, options)
 }
