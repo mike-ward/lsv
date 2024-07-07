@@ -89,7 +89,6 @@ fn parse_args(args []string) Options {
 	recursive := fp.bool('', `R`, false, 'list subdirectories recursively')
 	recursion_depth := fp.int('depth', ` `, max_int, 'limit depth of recursion')
 	list_by_lines := fp.bool('', `X`, false, 'list files by lines instead of by columns')
-	no_wrap := fp.bool('', `Z`, false, 'do not wrap long lines')
 	one_per_line := fp.bool('', `1`, false, 'list one file per line')
 
 	width_in_cols := fp.int('width', ` `, 0, 'set output width to <int>\n\nFiltering and Sorting Options:')
@@ -117,8 +116,9 @@ fn parse_args(args []string) Options {
 	time_iso := fp.bool('', `I`, false, 'show time in iso format')
 	time_compact := fp.bool('', `J`, false, 'show time in compact format')
 	inode := fp.bool('', `N`, false, 'show inodes')
-	checksum := fp.string('cs', ` `, '', 'show file checksum\n${flag.space}(md5, sha1, sha224, sha256, sha512, blake2b)\n')
+	no_wrap := fp.bool('', `Z`, false, 'do not wrap long lines\n')
 
+	checksum := fp.string('cs', ` `, '', 'show file checksum\n${flag.space}(md5, sha1, sha224, sha256, sha512, blake2b)')
 	no_count := fp.bool('no-counts', ` `, false, 'hide file/dir counts')
 	no_date := fp.bool('no-date', ` `, false, 'hide date (modified)')
 	no_dim := fp.bool('no-dim', ` `, false, 'hide shading; useful for light backgrounds')
