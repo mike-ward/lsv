@@ -169,6 +169,7 @@ const icons_map = {
 	'ts':           '󰛦'
 	'twig':         '\ue61c'
 	'txt':          '\uf15c'
+	'v':            '𝕍'
 	'vagrantfile':  '\ue21e'
 	'video':        '\uf03d'
 	'vim':          '\ue62b'

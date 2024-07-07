@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-### [2024.3] 2024-07-05
+## [2024.4] - 2024-07-07
+### Added
+- Optionally (-Z) truncate lines if too long. Show `≈` to indicate truncation
+- Minor performnce tweaks
+
+### Fixed
+- remove end-of-line padding when no borders specfied #1
+- fix date minute formatting error
+
+## [2024.3] - 2024-07-05
 ### Added
 - file icons
 

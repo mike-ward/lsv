@@ -1,8 +1,8 @@
 import arrays
+import os
 import strings
 import term
 import v.mathutil
-import os
 
 const cell_max = 12 // limit on wide displays
 const cell_spacing = 3 // space between cells
@@ -12,7 +12,7 @@ enum Align {
 	right
 }
 
-fn format(entries []Entry, options Options) {
+fn print_files(entries []Entry, options Options) {
 	w, _ := term.get_terminal_size()
 	options_width_ok := options.width_in_cols > 0 && options.width_in_cols < 1000
 	width := if options_width_ok { options.width_in_cols } else { w }
@@ -35,7 +35,6 @@ fn format_by_cells(entries []Entry, width int, options Options) {
 	partial_row := entries.len % max_cols != 0
 	rows := entries.len / max_cols + if partial_row { 1 } else { 0 }
 	max_rows := mathutil.max(1, rows)
-	mut line := strings.new_builder(200)
 
 	for r := 0; r < max_rows; r += 1 {
 		for c := 0; c < max_cols; c += 1 {
@@ -44,10 +43,10 @@ fn format_by_cells(entries []Entry, width int, options Options) {
 				entry := entries[idx]
 				name := format_entry_name(entry, options)
 				cell := format_cell(name, len, .left, get_style_for(entry, options), options)
-				line.write_string(cell)
+				print(cell)
 			}
 		}
-		println(line)
+		print_newline()
 	}
 }
 
@@ -55,19 +54,16 @@ fn format_by_lines(entries []Entry, width int, options Options) {
 	len := entries.max_name_len(options) + cell_spacing
 	cols := mathutil.min(width / len, cell_max)
 	max_cols := mathutil.max(cols, 1)
-	mut line := strings.new_builder(200)
 
 	for i, entry in entries {
 		if i % max_cols == 0 && i != 0 {
-			println(line)
+			print_newline()
 		}
 		name := format_entry_name(entry, options)
 		cell := format_cell(name, len, .left, get_style_for(entry, options), options)
-		line.write_string(cell)
+		print(cell)
 	}
-	if entries.len % max_cols != 0 {
-		println(line)
-	}
+	print_newline()
 }
 
 fn format_one_per_line(entries []Entry, options Options) {
@@ -123,7 +119,7 @@ fn format_table_cell(s string, width int, align Align, style Style, options Opti
 // surrounds a cell with table borders
 fn print_dir_name(name string, options Options) {
 	if name.len > 0 {
-		print('\n')
+		print_newline()
 		nm := if options.colorize { style_string(name, options.style_di, options) } else { name }
 		println('${nm}:')
 	}
@@ -208,4 +204,14 @@ fn format_entry_name(entry Entry, options Options) string {
 
 fn real_length(s string) int {
 	return term.strip_ansi(s).runes().len
+}
+
+@[inline]
+fn print_space() {
+	print_character(` `)
+}
+
+@[inline]
+fn print_newline() {
+	print_character(`\n`)
 }

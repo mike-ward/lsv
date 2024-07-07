@@ -34,10 +34,15 @@ fn get_entries(files []string, options Options) []Entry {
 	for file in files {
 		if os.is_dir(file) {
 			dir_files := os.ls(file) or { continue }
-			entries << dir_files.map(make_entry(it, file, options))
-			continue
+			entries << match options.all {
+				true { dir_files.map(make_entry(it, file, options)) }
+				else { dir_files.filter(!is_dot_file(it)).map(make_entry(it, file, options)) }
+			}
+		} else {
+			if options.all || !is_dot_file(file) {
+				entries << make_entry(file, '', options)
+			}
 		}
-		entries << make_entry(file, '', options)
 	}
 	return entries
 }
@@ -145,4 +150,8 @@ fn checksum(name string, dir_name string, options Options) string {
 		else      { unknown }
 		// vfmt on
 	}
+}
+
+fn is_dot_file(file string) bool {
+	return file.len > 0 && file[0] == `.`
 }

@@ -21,6 +21,7 @@ struct Options {
 	width_in_cols  int
 	with_commas    bool
 	icons          bool
+	no_wrap        bool
 	//
 	// filter, group and sorting options
 	all             bool
@@ -74,7 +75,7 @@ fn parse_args(args []string) Options {
 	mut fp := flag.new_flag_parser(args)
 
 	fp.application(app_name)
-	fp.version('2024.3')
+	fp.version('2024.4')
 	fp.skip_executable()
 	fp.description('List information about FILES')
 	fp.arguments_description('[FILES]')
@@ -88,6 +89,7 @@ fn parse_args(args []string) Options {
 	recursive := fp.bool('', `R`, false, 'list subdirectories recursively')
 	recursion_depth := fp.int('depth', ` `, max_int, 'limit depth of recursion')
 	list_by_lines := fp.bool('', `X`, false, 'list files by lines instead of by columns')
+	no_wrap := fp.bool('', `Z`, false, 'do not wrap long lines')
 	one_per_line := fp.bool('', `1`, false, 'list one file per line')
 
 	width_in_cols := fp.int('width', ` `, 0, 'set output width to <int>\n\nFiltering and Sorting Options:')
@@ -159,6 +161,7 @@ fn parse_args(args []string) Options {
 		no_owner_name: no_owner_name
 		no_permissions: no_permissions
 		no_size: no_size
+		no_wrap: no_wrap
 		octal_permissions: octal_permissions
 		one_per_line: one_per_line
 		only_dirs: only_dirs

@@ -1,5 +1,6 @@
 import arrays
 import os
+import term
 import time
 import v.mathutil { max }
 
@@ -41,6 +42,7 @@ fn format_long_listing(entries []Entry, options Options) {
 	longest := longest_entries(entries, options)
 	header, cols := format_header(options, longest)
 	header_len := real_length(header)
+	term_cols, _ := term.get_terminal_size()
 
 	print_header(header, options, header_len, cols)
 	print_header_border(options, header_len, cols)
@@ -53,7 +55,7 @@ fn format_long_listing(entries []Entry, options Options) {
 			if idx % block_size == 0 && idx != 0 {
 				match options.table_format {
 					true { print(border_row_middle(header_len, cols)) }
-					else { print('\n') }
+					else { print_newline() }
 				}
 			}
 		}
@@ -67,53 +69,53 @@ fn format_long_listing(entries []Entry, options Options) {
 		if options.inode {
 			content := if entry.invalid { unknown } else { entry.stat.inode.str() }
 			print(format_cell(content, longest.inode, Align.right, no_style, options))
-			print(space)
+			print_space()
 		}
 
 		// checksum
 		if options.checksum != '' {
 			checksum := format_cell(entry.checksum, longest.checksum, .left, dim, options)
 			print(checksum)
-			print(space)
+			print_space()
 		}
 
 		// permissions
 		if !options.no_permissions {
 			flag := file_flag(entry, options)
 			print(format_cell(flag, 1, .left, no_style, options))
-			print(space)
+			print_space()
 
 			content := permissions(entry, options)
 			print(format_cell(content, permissions_title.len, .right, no_style, options))
-			print(space)
+			print_space()
 		}
 
 		// octal permissions
 		if options.octal_permissions {
 			content := format_octal_permissions(entry, options)
 			print(format_cell(content, 4, .left, dim, options))
-			print(space)
+			print_space()
 		}
 
 		// hard links
 		if !options.no_hard_links {
 			content := if entry.invalid { unknown } else { '${entry.stat.nlink}' }
 			print(format_cell(content, longest.nlink, .right, dim, options))
-			print(space)
+			print_space()
 		}
 
 		// owner name
 		if !options.no_owner_name {
 			content := if entry.invalid { unknown } else { get_owner_name(entry.stat.uid) }
 			print(format_cell(content, longest.owner_name, .right, dim, options))
-			print(space)
+			print_space()
 		}
 
 		// group name
 		if !options.no_group_name {
 			content := if entry.invalid { unknown } else { get_group_name(entry.stat.gid) }
 			print(format_cell(content, longest.group_name, .right, dim, options))
-			print(space)
+			print_space()
 		}
 
 		// size
@@ -133,31 +135,46 @@ fn format_long_listing(entries []Entry, options Options) {
 			}
 			size := format_cell(content, longest.size, .right, size_style, options)
 			print(size)
-			print(space)
+			print_space()
 		}
 
 		// date/time(modified)
 		if !options.no_date {
 			print(format_time(entry, .modified, options))
-			print(space)
+			print_space()
 		}
 
 		// date/time (accessed)
 		if options.accessed_date {
 			print(format_time(entry, .accessed, options))
-			print(space)
+			print_space()
 		}
 
 		// date/time (status change)
 		if options.changed_date {
 			print(format_time(entry, .changed, options))
-			print(space)
+			print_space()
 		}
 
 		// file name
 		file_name := format_entry_name(entry, options)
 		file_style := get_style_for(entry, options)
-		println(format_cell(file_name, longest.file, .left, file_style, options))
+		match options.table_format {
+			true { print(format_cell(file_name, longest.file, .left, file_style, options)) }
+			else { print(format_cell(file_name, 0, .left, file_style, options)) }
+		}
+
+		// line too long? Print a '≈' in the last column
+		if options.no_wrap {
+			mut coord := term.get_cursor_position() or { term.Coord{} }
+			if coord.x >= term_cols {
+				coord.x = term_cols
+				term.set_cursor_position(coord)
+				print('≈')
+			}
+		}
+
+		print_newline()
 	}
 
 	// bottom border
@@ -267,12 +284,12 @@ fn format_header(options Options, longest Longest) (string, []int) {
 }
 
 fn time_format(options Options) string {
-	return if options.time_iso {
-		date_iso_format
-	} else if options.time_compact {
-		date_compact_format
-	} else {
-		date_format
+	return match true {
+		// vfmt off
+		options.time_iso     { date_iso_format }
+		options.time_compact { date_compact_format }
+		else 		     { date_format }
+		// vfmt on
 	}
 }
 

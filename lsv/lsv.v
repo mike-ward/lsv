@@ -4,6 +4,7 @@ import os
 
 fn main() {
 	options := parse_args(os.args)
+	set_auto_wrap(options)
 	entries := get_entries(options.files, options)
 	mut cyclic := Set[string]{}
 	lsv(entries, options, mut cyclic)
@@ -22,12 +23,12 @@ fn lsv(entries []Entry, options Options, mut cyclic Set[string]) {
 		if group_by_dirs.len > 1 || options.recursive {
 			print_dir_name(dir, options)
 		}
-		format(sorted, options)
+		print_files(sorted, options)
 
 		if options.recursive {
 			for entry in sorted {
-				entry_path := os.join_path(entry.dir_name, entry.name)
 				if entry.dir {
+					entry_path := os.join_path(entry.dir_name, entry.name)
 					if cyclic.exists(entry_path) {
 						println('===> cyclic reference detected <===')
 						continue
@@ -39,5 +40,23 @@ fn lsv(entries []Entry, options Options, mut cyclic Set[string]) {
 				}
 			}
 		}
+	}
+}
+
+fn set_auto_wrap(options Options) {
+	if options.no_wrap {
+		wrap_off := '\e[?7l'
+		wrap_reset := '\e[?7h'
+		println(wrap_off)
+
+		at_exit(fn [wrap_reset] () {
+			println(wrap_reset)
+		}) or {}
+
+		// Ctrl-C handler
+		os.signal_opt(os.Signal.int, fn (sig os.Signal) {
+			println('\e[?7h') // until compile bug fixed
+			exit(0)
+		}) or {}
 	}
 }
