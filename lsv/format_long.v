@@ -17,9 +17,9 @@ const name_title = 'Name'
 const unknown = '?'
 const block_size = 5
 const space = ' '
-const date_format = 'MMM DD YYYY HH:MM:ss'
-const date_iso_format = 'YYYY-MM-DD HH:MM:ss'
-const date_compact_format = "DD MMM'YY HH:MM"
+const date_format = 'MMM DD YYYY HH:mm:ss'
+const date_iso_format = 'YYYY-MM-DD HH:mm:ss'
+const date_compact_format = "DD MMM'YY HH:mm"
 
 struct Longest {
 	inode      int
