@@ -43,7 +43,7 @@ I tried several times to submit to Homebrew but could never get past the CI. Ple
 
 ## Help
 ```
-lsv 2024.3
+lsv 2024.4
 -----------------------------------------------
 Usage: lsv [options] [FILES]
 
@@ -88,9 +88,10 @@ Long Listing Options:
   -I                        show time in iso format
   -J                        show time in compact format
   -N                        show inodes
+  -Z                        do not wrap long lines
+
       --cs <string>         show file checksum
                             (md5, sha1, sha224, sha256, sha512, blake2b)
-
       --no-counts           hide file/dir counts
       --no-date             hide date (modified)
       --no-dim              hide shading; useful for light backgrounds

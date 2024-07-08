@@ -1,6 +1,5 @@
 import arrays
 import os
-import strings
 import term
 import v.mathutil
 
@@ -73,13 +72,12 @@ fn format_one_per_line(entries []Entry, options Options) {
 }
 
 fn format_with_commas(entries []Entry, options Options) {
-	mut line := strings.new_builder(200)
 	last := entries.len - 1
 	for i, entry in entries {
 		content := if i < last { '${entry.name}, ' } else { entry.name }
-		line.write_string(format_cell(content, 0, .left, no_style, options))
+		print(format_cell(content, 0, .left, no_style, options))
 	}
-	println(line)
+	print_newline()
 }
 
 fn format_cell(s string, width int, align Align, style Style, options Options) string {
