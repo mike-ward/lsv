@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+### Updated
+- tweaked the help layout
+- removed the last vestiages of line buffering
+
 ## [2024.4] - 2024-07-07
 ### Added
 - Optionally (-Z) truncate lines if too long. Show `≈` to indicate truncation
