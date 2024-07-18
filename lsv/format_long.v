@@ -21,6 +21,7 @@ const space = ' '
 const date_format = 'MMM DD YYYY HH:mm:ss'
 const date_iso_format = 'YYYY-MM-DD HH:mm:ss'
 const date_compact_format = "DD MMM'YY HH:mm"
+const date_compact_format_with_day = "ddd DD MMM'YY HH:mm"
 
 struct Longest {
 	inode      int
@@ -286,9 +287,10 @@ fn format_header(options Options, longest Longest) (string, []int) {
 fn time_format(options Options) string {
 	return match true {
 		// vfmt off
-		options.time_iso     { date_iso_format }
-		options.time_compact { date_compact_format }
-		else 		     { date_format }
+		options.time_iso     		{ date_iso_format }
+		options.time_compact 		{ date_compact_format }
+		options.time_compact_with_day 	{ date_compact_format_with_day }
+		else 		     		{ date_format }
 		// vfmt on
 	}
 }
@@ -388,9 +390,13 @@ fn format_time(entry Entry, stat_time StatTime, options Options) string {
 		.modified { entry.stat.mtime }
 	}
 
-	date := time.unix(entry_time)
+	mut date := time.unix(entry_time)
 		.local()
 		.custom_format(time_format(options))
+
+	if date.starts_with('0') {
+		date = ' ' + date[1..]
+	}
 
 	dim := if options.no_dim { no_style } else { dim_style }
 	content := if entry.invalid { '?' + space.repeat(date.len - 1) } else { date }

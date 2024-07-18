@@ -39,23 +39,24 @@ struct Options {
 	sort_width      bool
 	//
 	// long view options
-	accessed_date     bool
-	changed_date      bool
-	header            bool
-	inode             bool
-	no_count          bool
-	no_date           bool
-	no_group_name     bool
-	no_hard_links     bool
-	no_owner_name     bool
-	no_permissions    bool
-	no_size           bool
-	octal_permissions bool
-	size_kb           bool
-	size_ki           bool
-	time_iso          bool
-	time_compact      bool
-	checksum          string
+	accessed_date         bool
+	changed_date          bool
+	header                bool
+	inode                 bool
+	no_count              bool
+	no_date               bool
+	no_group_name         bool
+	no_hard_links         bool
+	no_owner_name         bool
+	no_permissions        bool
+	no_size               bool
+	octal_permissions     bool
+	size_kb               bool
+	size_ki               bool
+	time_iso              bool
+	time_compact          bool
+	time_compact_with_day bool
+	checksum              string
 	//
 	// from ls colors
 	style_di Style
@@ -115,6 +116,7 @@ fn parse_args(args []string) Options {
 	header := fp.bool('', `H`, false, 'show column headers')
 	time_iso := fp.bool('', `I`, false, 'show time in iso format')
 	time_compact := fp.bool('', `J`, false, 'show time in compact format')
+	time_compact_with_day := fp.bool('', `L`, false, 'show time in compact format with week day')
 	inode := fp.bool('', `N`, false, 'show inodes')
 	no_wrap := fp.bool('', `Z`, false, 'do not wrap long lines\n')
 
@@ -128,8 +130,7 @@ fn parse_args(args []string) Options {
 	no_permissions := fp.bool('no-permissions', 0, false, 'hide permissions')
 	no_size := fp.bool('no-size', 0, false, 'hide file size\n')
 
-	fp.footer('
-
+	fp.footer('\n
 		The -c option emits color codes when standard output is
 		connected to a terminal. Colors are defined in the LS_COLORS
 		environment variable.'.trim_indent())
@@ -189,6 +190,7 @@ fn parse_args(args []string) Options {
 		style_so: style_map['so']
 		table_format: table_format && long_format
 		time_compact: time_compact
+		time_compact_with_day: time_compact_with_day
 		time_iso: time_iso
 		width_in_cols: width_in_cols
 		with_commas: with_commas

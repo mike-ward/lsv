@@ -3,9 +3,13 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Added
+- compact date with week day (e.g. Thu 18 Jul'24 09:03)
+
 ### Updated
 - tweaked the help layout
 - removed the last vestiages of line buffering
+- remove leading 0 in compact date format
 
 ## [2024.4] - 2024-07-07
 ### Added

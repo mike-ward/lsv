@@ -58,7 +58,7 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 	}
 
 	filetype := stat.get_filetype()
-	is_link := filetype == os.FileType.symbolic_link
+	is_link := filetype == .symbolic_link
 	link_origin := if is_link { read_link(path) } else { '' }
 	mut size := stat.size
 	mut link_stat := os.Stat{}
@@ -76,8 +76,7 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 	is_character_device := filetype == .character_device
 	is_unknown := filetype == .unknown
 	is_exe := !is_dir && is_executable(stat)
-	is_file := !is_dir && !is_fifo && !is_block && !is_socket && !is_character_device && !is_unknown
-		&& !is_exe && !invalid
+	is_file := filetype == .regular
 	indicator := if is_dir && options.dir_indicator { '/' } else { '' }
 
 	return Entry{
@@ -103,10 +102,6 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 		invalid: 	invalid
 		// vfmt on
 	}
-}
-
-fn is_executable(stat os.Stat) bool {
-	return stat.get_mode().bitmask() & 0b001001001 > 0
 }
 
 fn readable_size(size u64, si bool) string {
@@ -152,6 +147,12 @@ fn checksum(name string, dir_name string, options Options) string {
 	}
 }
 
+@[inline]
+fn is_executable(stat os.Stat) bool {
+	return stat.get_mode().bitmask() & 0b001001001 > 0
+}
+
+@[inline]
 fn is_dot_file(file string) bool {
-	return file.len > 0 && file[0] == `.`
+	return file.starts_with('.')
 }
