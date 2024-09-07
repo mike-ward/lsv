@@ -2,9 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [2024.5]
 ### Added
 - compact date with week day (e.g. Thu 18 Jul'24 09:03)
+- fix printing of error message for command line flags
 
 ### Updated
 - tweaked the help layout
