@@ -140,67 +140,67 @@ fn parse_args(args []string) Options {
 	can_show_color_on_stdout := term.can_show_color_on_stdout()
 
 	return Options{
-		all: all
-		accessed_date: accessed_date
-		blocked_output: blocked_output
-		changed_date: changed_date
-		checksum: checksum
-		colorize: colorize && can_show_color_on_stdout
-		dir_indicator: dir_indicator
-		dirs_first: dirs_first
-		files: if files == [] { current_dir } else { files }
-		header: header
-		icons: icons
-		inode: inode
-		list_by_lines: list_by_lines
-		long_format: long_format
-		no_count: no_count
-		no_date: no_date
-		no_dim: no_dim
-		no_group_name: no_group_name
-		no_hard_links: no_hard_links
-		no_owner_name: no_owner_name
-		no_permissions: no_permissions
-		no_size: no_size
-		no_wrap: no_wrap
-		octal_permissions: octal_permissions
-		one_per_line: one_per_line
-		only_dirs: only_dirs
-		only_files: only_files
-		quote: quote
-		recursion_depth: recursion_depth
-		recursive: recursive
-		relative_path: relative_path
-		size_kb: size_kb
-		size_ki: size_ki
-		sort_ext: sort_ext
-		sort_natural: sort_natural
-		sort_none: sort_none
-		sort_reverse: sort_reverse
-		sort_size: sort_size
-		sort_time: sort_time
-		sort_width: sort_width
-		style_bd: style_map['bd']
-		style_cd: style_map['cd']
-		style_di: style_map['di']
-		style_ex: style_map['ex']
-		style_fi: style_map['fi']
-		style_ln: style_map['ln']
-		style_pi: style_map['pi']
-		style_so: style_map['so']
-		table_format: table_format && long_format
-		time_compact: time_compact
+		all:                   all
+		accessed_date:         accessed_date
+		blocked_output:        blocked_output
+		changed_date:          changed_date
+		checksum:              checksum
+		colorize:              colorize && can_show_color_on_stdout
+		dir_indicator:         dir_indicator
+		dirs_first:            dirs_first
+		files:                 if files == [] { current_dir } else { files }
+		header:                header
+		icons:                 icons
+		inode:                 inode
+		list_by_lines:         list_by_lines
+		long_format:           long_format
+		no_count:              no_count
+		no_date:               no_date
+		no_dim:                no_dim
+		no_group_name:         no_group_name
+		no_hard_links:         no_hard_links
+		no_owner_name:         no_owner_name
+		no_permissions:        no_permissions
+		no_size:               no_size
+		no_wrap:               no_wrap
+		octal_permissions:     octal_permissions
+		one_per_line:          one_per_line
+		only_dirs:             only_dirs
+		only_files:            only_files
+		quote:                 quote
+		recursion_depth:       recursion_depth
+		recursive:             recursive
+		relative_path:         relative_path
+		size_kb:               size_kb
+		size_ki:               size_ki
+		sort_ext:              sort_ext
+		sort_natural:          sort_natural
+		sort_none:             sort_none
+		sort_reverse:          sort_reverse
+		sort_size:             sort_size
+		sort_time:             sort_time
+		sort_width:            sort_width
+		style_bd:              style_map['bd']
+		style_cd:              style_map['cd']
+		style_di:              style_map['di']
+		style_ex:              style_map['ex']
+		style_fi:              style_map['fi']
+		style_ln:              style_map['ln']
+		style_pi:              style_map['pi']
+		style_so:              style_map['so']
+		table_format:          table_format && long_format
+		time_compact:          time_compact
 		time_compact_with_day: time_compact_with_day
-		time_iso: time_iso
-		width_in_cols: width_in_cols
-		with_commas: with_commas
+		time_iso:              time_iso
+		width_in_cols:         width_in_cols
+		with_commas:           with_commas
 	}
 }
 
 @[noreturn]
 fn exit_error(msg string) {
 	if msg.len > 0 {
-		eprintln('${app_name}: ${error}')
+		eprintln('${app_name}: ${msg}')
 	}
 	eprintln("Try '${app_name} --help' for more information.")
 	exit(1)
