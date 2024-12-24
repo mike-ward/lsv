@@ -2,7 +2,7 @@
 
 all:
 	-mkdir bin
-	v -prod lsv -o bin/lsv
+	v -prod -parallel-cc lsv -o bin/lsv
 
 unused:
 	-mkdir bin
