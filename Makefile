@@ -2,9 +2,8 @@
 
 all:
 	-mkdir bin
-	v -prod -parallel-cc lsv -o bin/lsv
+	v -prod lsv -o bin/lsv
 
-unused:
+native:
 	-mkdir bin
-	v -prod -skip-unused lsv -o bin/lsv
-
+	v -prod -backend native lsv -o bin/lsv
