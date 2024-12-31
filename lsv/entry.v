@@ -22,6 +22,7 @@ struct Entry {
 	unknown     bool
 	link_origin string
 	size        u64
+	size_comma  string
 	size_ki     string
 	size_kb     string
 	checksum    string
@@ -96,12 +97,20 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 		unknown: 	is_unknown
 		link_origin: 	link_origin
 		size: 		size
+		size_comma:     if options.comma { num_with_commas(size)} else { '' }
 		size_ki: 	if options.size_ki { readable_size(size, true) } else { '' }
 		size_kb: 	if options.size_kb { readable_size(size, false) } else { '' }
 		checksum: 	if is_file { checksum(file, dir_name, options) } else { '' }
 		invalid: 	invalid
 		// vfmt on
 	}
+}
+
+fn num_with_commas(num u64) string {
+	if num < 1000 {
+		return num.str()
+	}
+	return num_with_commas(num / 1000) + ',${(num % 1000):03u}'
 }
 
 fn readable_size(size u64, si bool) string {

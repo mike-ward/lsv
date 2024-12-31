@@ -39,11 +39,11 @@ Border format with header option
 
 ### Homebrew
 
-I tried several times to submit to Homebrew but could never get past the CI. Please send a pull request to Homebrew if you know how. Thanks.
+Not enough stars to publish to Homebrew :(
 
 ## Help
 ```
-lsv 2024.4
+lsv 2024.6
 -----------------------------------------------
 Usage: lsv [options] [FILES]
 
@@ -54,13 +54,15 @@ Options:
   -c                        color the listing
   -D                        append / to directories
   -i                        show file icon (requires nerd fonts)
+  -l                        long listing format
   -m                        list of files separated by commas
   -q                        enclose files in quotes
   -R                        list subdirectories recursively
-      --depth <int>         limit depth of recursion
   -X                        list files by lines instead of by columns
   -1                        list one file per line
-      --width <int>         set output width to <int>
+
+  --depth <int>             limit depth of recursion
+  --width <int>             set output width to <int>
 
 Filtering and Sorting Options:
   -d                        list only directories
@@ -75,11 +77,11 @@ Filtering and Sorting Options:
   -u                        no sorting
 
 Long Listing Options:
+  -,                        show file sizes grouped and separated by thousands
   -b                        blank line every 5 rows
   -B                        add borders to long listing format
   -k                        sizes in kibibytes (1024) (e.g. 1k 234m 2g)
   -K                        sizes in Kilobytes (1000) (e.g. 1kb 234mb 2gb)
-  -l                        long listing format
   -o                        show octal permissions
   -p                        show relative path
   -A                        show last accessed date
@@ -87,19 +89,20 @@ Long Listing Options:
   -H                        show column headers
   -I                        show time in iso format
   -J                        show time in compact format
+  -L                        show time in compact format with week day
   -N                        show inodes
   -Z                        do not wrap long lines
 
-      --cs <string>         show file checksum
+  --cs <string>             show file checksum
                             (md5, sha1, sha224, sha256, sha512, blake2b)
-      --no-counts           hide file/dir counts
-      --no-date             hide date (modified)
-      --no-dim              hide shading; useful for light backgrounds
-      --no-group            hide group name
-      --no-hard-links       hide hard links count
-      --no-owner            hide owner name
-      --no-permissions      hide permissions
-      --no-size             hide file size
+  --no-counts               hide file/dir counts
+  --no-date                 hide date (modified)
+  --no-dim                  hide shading; useful for light backgrounds
+  --no-group                hide group name
+  --no-hard-links           hide hard links count
+  --no-owner                hide owner name
+  --no-permissions          hide permissions
+  --no-size                 hide file size
 
   -h, --help                display this help and exit
   --version                 output version information and exit

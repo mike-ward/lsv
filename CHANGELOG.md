@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2024.6]
+### Added
+- , (comma) flag to print file sizes grouped and separated by thousands.
+
+### Update
+- icons
+
 ## [2024.5]
 ### Added
 - compact date with week day (e.g. Thu 18 Jul'24 09:03)

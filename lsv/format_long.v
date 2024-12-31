@@ -127,6 +127,7 @@ fn format_long_listing(entries []Entry, options Options) {
 				entry.dir || entry.socket || entry.fifo 		{ '-' }
 				options.size_ki && options.size_ki && !options.size_kb 	{ entry.size_ki }
 				options.size_kb && options.size_kb 			{ entry.size_kb }
+				options.comma                                           { entry.size_comma }
 				else 							{ entry.size.str() }
 				// vfmt on
 			}
@@ -330,6 +331,7 @@ fn statistics(entries []Entry, len int, options Options) {
 	size := match true {
 		options.size_ki { readable_size(total, true) }
 		options.size_kb { readable_size(total, false) }
+		options.comma { num_with_commas(total) }
 		else { total.str() }
 	}
 
@@ -426,6 +428,7 @@ fn longest_size_len(entries []Entry, title string, options Options) int {
 		it.dir { 1 }
 		options.size_ki && !options.size_kb { it.size_ki.len }
 		options.size_kb { it.size_kb.len }
+		options.comma { it.size_comma.len }
 		else { it.size.str().len }
 	})
 	max := arrays.max(lengths) or { 0 }

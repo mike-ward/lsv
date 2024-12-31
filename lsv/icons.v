@@ -8,11 +8,11 @@ fn get_icon_for_entry(entry Entry, options Options) string {
 	name := os.file_name(entry.name)
 	return match entry.dir {
 		true { get_icon_for_folder(name) }
-		else { get_icon_for_file(name, ext) }
+		else { get_icon_for_file(name, ext, entry) }
 	}
 }
 
-fn get_icon_for_file(name string, ext string) string {
+fn get_icon_for_file(name string, ext string, entry Entry) string {
 	// default icon for all files. try to find a better one though...
 	mut icon := icons_map['file']
 	// resolve aliased extensions
@@ -38,6 +38,15 @@ fn get_icon_for_file(name string, ext string) string {
 	best_icon := icons_map[full_name]
 	if best_icon != '' {
 		icon = best_icon
+	}
+	// look at file type
+	if icon == icons_map['file'] {
+		icon = match true {
+			entry.socket { other_icons_map['socket'] }
+			entry.link { other_icons_map['link'] }
+			entry.exe { other_icons_map['exe'] }
+			else { icons_map['file'] }
+		}
 	}
 	return icon + space
 }
@@ -88,7 +97,7 @@ const icons_map = {
 	'erl':          '\ue7b1'
 	'ex':           '\ue62d'
 	'f':            '󱈚'
-	'file':         '\uf15b'
+	'file':         '\uea7b'
 	'font':         '\uf031'
 	'fs':           '\ue7a7'
 	'gb':           '\ue272'
@@ -421,11 +430,11 @@ const folders_map = {
 	'.npm':                  '\ue5fa'
 	'.nvm':                  '\ue718'
 	'.rvm':                  '\ue21e'
-	'.Trash':                '\uf1f8'
+	'.Trash':                '\uf014'
 	'.vscode':               '\ue70c'
 	'.vim':                  '\ue62b'
 	'config':                '\ue5fc'
-	'folder':                '\uf07c'
+	'folder':                '\uea83'
 	'hidden':                '\uf023'
 	'node_modules':          '\ue5fa'
 }
@@ -437,4 +446,5 @@ const other_icons_map = {
 	'device':     '\uf0a0'
 	'socket':     '\uf1e6'
 	'pipe':       '\ufce3'
+	'exe':        '\uef0c'
 }

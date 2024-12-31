@@ -41,6 +41,7 @@ struct Options {
 	// long view options
 	accessed_date         bool
 	changed_date          bool
+	comma                 bool
 	header                bool
 	inode                 bool
 	no_count              bool
@@ -76,7 +77,7 @@ fn parse_args(args []string) Options {
 	mut fp := flag.new_flag_parser(args)
 
 	fp.application(app_name)
-	fp.version('2024.5')
+	fp.version('2024.6')
 	fp.skip_executable()
 	fp.description('List information about FILES')
 	fp.arguments_description('[FILES]')
@@ -91,8 +92,8 @@ fn parse_args(args []string) Options {
 	recursive := fp.bool('', `R`, false, 'list subdirectories recursively')
 	list_by_lines := fp.bool('', `X`, false, 'list files by lines instead of by columns')
 	one_per_line := fp.bool('', `1`, false, 'list one file per line\n')
-
 	recursion_depth := fp.int('depth', 0, max_int, 'limit depth of recursion')
+
 	width_in_cols := fp.int('width', 0, 0, 'set output width to <int>\n\nFiltering and Sorting Options:')
 	only_dirs := fp.bool('', `d`, false, 'list only directories')
 	only_files := fp.bool('', `f`, false, 'list only files')
@@ -103,8 +104,9 @@ fn parse_args(args []string) Options {
 	sort_natural := fp.bool('', `v`, false, 'sort digits within text as numbers')
 	sort_width := fp.bool('', `w`, false, 'sort by width, shortest first')
 	sort_ext := fp.bool('', `x`, false, 'sort by file extension')
-
 	sort_none := fp.bool('', `u`, false, 'no sorting\n\nLong Listing Options:')
+
+	comma := fp.bool('', `,`, false, 'show file sizes grouped and separated by thousands')
 	blocked_output := fp.bool('', `b`, false, 'blank line every 5 rows')
 	table_format := fp.bool('', `B`, false, 'add borders to long listing format')
 	size_ki := fp.bool('', `k`, false, 'sizes in kibibytes (1024) (e.g. 1k 234m 2g)')
@@ -146,6 +148,7 @@ fn parse_args(args []string) Options {
 		changed_date:          changed_date
 		checksum:              checksum
 		colorize:              colorize && can_show_color_on_stdout
+		comma:                 comma
 		dir_indicator:         dir_indicator
 		dirs_first:            dirs_first
 		files:                 if files == [] { current_dir } else { files }

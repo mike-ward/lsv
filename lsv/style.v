@@ -21,7 +21,7 @@ const dim_style = Style{
 
 const di_style = Style{
 	bold: true
-	fg: fgf('36') // cyan
+	fg:   fgf('36') // cyan
 }
 
 const fi_style = Style{
@@ -30,12 +30,12 @@ const fi_style = Style{
 
 const ln_style = Style{
 	bold: true
-	fg: fgf('34') // magenta
+	fg:   fgf('34') // magenta
 }
 
 const ex_style = Style{
 	bold: true
-	fg: fgf('31') // red
+	fg:   fgf('31') // red
 }
 
 const so_style = Style{
@@ -152,10 +152,10 @@ fn make_style(ansi string) Style {
 	}
 
 	return Style{
-		fg: fg
-		bg: bg
+		fg:   fg
+		bg:   bg
 		bold: bold
-		ul: ul
+		ul:   ul
 	}
 }
 
