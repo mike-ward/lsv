@@ -1,7 +1,7 @@
 import v.mathutil
 
 // compares strings with embedded numbers (e.g. log17.txt)
-fn natural_compare(a &string, b &string) int {
+fn natural_compare(a &string, b &string, ignore_case bool) int {
 	pa := split(a)
 	pb := split(b)
 	max := mathutil.min(pa.len, pb.len)
@@ -13,7 +13,7 @@ fn natural_compare(a &string, b &string) int {
 				return result
 			}
 		} else {
-			result := compare_strings(pa[i], pb[i])
+			result := string_compare(pa[i], pb[i], ignore_case)
 			if result != 0 {
 				return result
 			}

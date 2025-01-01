@@ -24,19 +24,20 @@ struct Options {
 	no_wrap        bool
 	//
 	// filter, group and sorting options
-	all             bool
-	dirs_first      bool
-	only_dirs       bool
-	only_files      bool
-	recursion_depth int
-	recursive       bool
-	sort_ext        bool
-	sort_natural    bool
-	sort_none       bool
-	sort_reverse    bool
-	sort_size       bool
-	sort_time       bool
-	sort_width      bool
+	all              bool
+	dirs_first       bool
+	only_dirs        bool
+	only_files       bool
+	recursion_depth  int
+	recursive        bool
+	sort_ext         bool
+	sort_ignore_case bool
+	sort_natural     bool
+	sort_none        bool
+	sort_reverse     bool
+	sort_size        bool
+	sort_time        bool
+	sort_width       bool
 	//
 	// long view options
 	accessed_date         bool
@@ -86,7 +87,7 @@ fn parse_args(args []string) Options {
 	colorize := fp.bool('', `c`, false, 'color the listing')
 	dir_indicator := fp.bool('', `D`, false, 'append / to directories')
 	icons := fp.bool('', `i`, false, 'show file icon (requires nerd fonts)')
-	long_format := fp.bool('', `l`, false, 'long listing format')
+	long_format := fp.bool('', `l`, false, 'long listing format (see Long Listing Options)')
 	with_commas := fp.bool('', `m`, false, 'list of files separated by commas')
 	quote := fp.bool('', `q`, false, 'enclose files in quotes')
 	recursive := fp.bool('', `R`, false, 'list subdirectories recursively')
@@ -104,11 +105,12 @@ fn parse_args(args []string) Options {
 	sort_natural := fp.bool('', `v`, false, 'sort digits within text as numbers')
 	sort_width := fp.bool('', `w`, false, 'sort by width, shortest first')
 	sort_ext := fp.bool('', `x`, false, 'sort by file extension')
-	sort_none := fp.bool('', `u`, false, 'no sorting\n\nLong Listing Options:')
+	sort_none := fp.bool('', `u`, false, 'no sorting\n')
+	sort_ignore_case := fp.bool('ignore-case', 0, false, 'ignore case when sorting\n\nLong Listing Options:')
 
-	size_comma := fp.bool('', `,`, false, 'show file sizes grouped and separated by thousands')
 	blocked_output := fp.bool('', `b`, false, 'blank line every 5 rows')
 	table_format := fp.bool('', `B`, false, 'add borders to long listing format')
+	size_comma := fp.bool('', `,`, false, 'sizes comma separated by thousands')
 	size_ki := fp.bool('', `k`, false, 'sizes in kibibytes (1024) (e.g. 1k 234m 2g)')
 	size_kb := fp.bool('', `K`, false, 'sizes in Kilobytes (1000) (e.g. 1kb 234mb 2gb)')
 	octal_permissions := fp.bool('', `o`, false, 'show octal permissions')
@@ -177,6 +179,7 @@ fn parse_args(args []string) Options {
 		size_kb:               size_kb
 		size_ki:               size_ki
 		sort_ext:              sort_ext
+		sort_ignore_case:      sort_ignore_case
 		sort_natural:          sort_natural
 		sort_none:             sort_none
 		sort_reverse:          sort_reverse
