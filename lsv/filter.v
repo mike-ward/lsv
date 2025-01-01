@@ -3,7 +3,7 @@ fn filter(entries []Entry, options Options) []Entry {
 		// vfmt off
 		options.only_dirs  { entries.clone().filter(it.dir) }
 		options.only_files { entries.clone().filter(it.file) }
-		else 		   { entries }
+		else               { entries }
 		// vfmt on
 	}
 }

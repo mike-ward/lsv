@@ -14,7 +14,7 @@ fn sort(entries []Entry, options Options) []Entry {
 					// vfmt off
 					a.size < b.size { 1 }
 					a.size > b.size { -1 }
-					else 		{ compare_strings(a.name, b.name) }
+					else            { compare_strings(a.name, b.name) }
 					// vfmt on
 				}
 			}
@@ -25,7 +25,7 @@ fn sort(entries []Entry, options Options) []Entry {
 					// vfmt off
 					a.stat.mtime < b.stat.mtime { 1 }
 					a.stat.mtime > b.stat.mtime { -1 }
-					else 			    { compare_strings(a.name, b.name) }
+					else                        { compare_strings(a.name, b.name) }
 					// vfmt on
 				}
 			}

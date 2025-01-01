@@ -18,11 +18,11 @@ fn print_files(entries []Entry, options Options) {
 
 	match true {
 		// vfmt off
-		options.long_format 	{ format_long_listing(entries, options) }
-		options.list_by_lines 	{ format_by_lines(entries, width, options) }
-		options.with_commas 	{ format_with_commas(entries, options) }
-		options.one_per_line 	{ format_one_per_line(entries, options) }
-		else 			{ format_by_cells(entries, width, options) }
+		options.long_format   { format_long_listing(entries, options) }
+		options.list_by_lines { format_by_lines(entries, width, options) }
+		options.with_commas   { format_with_commas(entries, options) }
+		options.one_per_line  { format_one_per_line(entries, options) }
+		else                  { format_by_cells(entries, width, options) }
 		// vfmt on
 	}
 }
@@ -131,15 +131,15 @@ fn (entries []Entry) max_name_len(options Options) int {
 fn get_style_for(entry Entry, options Options) Style {
 	return match true {
 		// vfmt off
-		entry.link 	{ options.style_ln }
-		entry.dir 	{ options.style_di }
-		entry.exe 	{ options.style_ex }
-		entry.fifo 	{ options.style_pi }
-		entry.block 	{ options.style_bd }
+		entry.link      { options.style_ln }
+		entry.dir       { options.style_di }
+		entry.exe       { options.style_ex }
+		entry.fifo      { options.style_pi }
+		entry.block     { options.style_bd }
 		entry.character { options.style_cd }
-		entry.socket 	{ options.style_so }
-		entry.file 	{ options.style_fi }
-		else 		{ no_style }
+		entry.socket    { options.style_so }
+		entry.file      { options.style_fi }
+		else            { no_style }
 		// vfmt on
 	}
 }
@@ -162,15 +162,15 @@ fn get_style_for_link(entry Entry, options Options) Style {
 
 	return match true {
 		// vfmt off
-		is_dir 		    { options.style_di }
-		is_exe 		    { options.style_ex }
-		is_fifo 	    { options.style_pi }
-		is_block 	    { options.style_bd }
+		is_dir              { options.style_di }
+		is_exe              { options.style_ex }
+		is_fifo             { options.style_pi }
+		is_block            { options.style_bd }
 		is_character_device { options.style_cd }
-		is_socket 	    { options.style_so }
-		is_unknown 	    { unknown_style }
-		is_file 	    { options.style_fi }
-		else 		    { no_style }
+		is_socket           { options.style_so }
+		is_unknown          { unknown_style }
+		is_file             { options.style_fi }
+		else                { no_style }
 		// vfmt on
 	}
 }

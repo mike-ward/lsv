@@ -123,12 +123,12 @@ fn format_long_listing(entries []Entry, options Options) {
 		if !options.no_size {
 			content := match true {
 				// vfmt off
-				entry.invalid 						{ unknown }
-				entry.dir || entry.socket || entry.fifo 		{ '-' }
-				options.size_ki && options.size_ki && !options.size_kb 	{ entry.size_ki }
-				options.size_kb && options.size_kb 			{ entry.size_kb }
+				entry.invalid                                           { unknown }
+				entry.dir || entry.socket || entry.fifo                 { '-' }
+				options.size_ki && options.size_ki && !options.size_kb  { entry.size_ki }
+				options.size_kb && options.size_kb                      { entry.size_kb }
 				options.size_comma                                      { entry.size_comma }
-				else 							{ entry.size.str() }
+				else                                                    { entry.size.str() }
 				// vfmt on
 			}
 			size_style := match entry.link_stat.size > 0 {
@@ -288,10 +288,10 @@ fn format_header(options Options, longest Longest) (string, []int) {
 fn time_format(options Options) string {
 	return match true {
 		// vfmt off
-		options.time_iso     		{ date_iso_format }
-		options.time_compact 		{ date_compact_format }
-		options.time_compact_with_day 	{ date_compact_format_with_day }
-		else 		     		{ date_format }
+		options.time_iso               { date_iso_format }
+		options.time_compact           { date_compact_format }
+		options.time_compact_with_day  { date_compact_format_with_day }
+		else                           { date_format }
 		// vfmt on
 	}
 }
@@ -332,13 +332,13 @@ fn statistics(entries []Entry, len int, options Options) {
 		// vfmt off
 		options.size_ki    { readable_size(total, true) }
 		options.size_kb    { readable_size(total, false) }
-		options.size_comma { num_with_commas(total) }
-		else		   { total.str() }
+		options.size_comma { num_with_commas(total) + ' bytes' }
+		else               { total.str() }
 		// vfmt on
 	}
 
 	totals := style_string(size, options.style_fi, options)
-	stats = '${dir_count_styled} ${dirs} | ${file_count_styled} ${files} [${totals}]'
+	stats = '${dir_count_styled} ${dirs} | ${file_count_styled} ${files} | ${totals}'
 
 	if link_count > 0 {
 		link_count_styled := style_string(link_count.str(), options.style_ln, options)
@@ -351,16 +351,16 @@ fn statistics(entries []Entry, len int, options Options) {
 fn file_flag(entry Entry, options Options) string {
 	return match true {
 		// vfmt off
-		entry.invalid 	{ unknown }
-		entry.link 	{ style_string('l', options.style_ln, options) }
-		entry.dir 	{ style_string('d', options.style_di, options) }
-		entry.exe 	{ style_string('x', options.style_ex, options) }
-		entry.fifo 	{ style_string('p', options.style_pi, options) }
-		entry.block 	{ style_string('b', options.style_bd, options) }
+		entry.invalid   { unknown }
+		entry.link      { style_string('l', options.style_ln, options) }
+		entry.dir       { style_string('d', options.style_di, options) }
+		entry.exe       { style_string('x', options.style_ex, options) }
+		entry.fifo      { style_string('p', options.style_pi, options) }
+		entry.block     { style_string('b', options.style_bd, options) }
 		entry.character { style_string('c', options.style_cd, options) }
-		entry.socket 	{ style_string('s', options.style_so, options) }
-		entry.file	{ style_string('f', options.style_fi, options) }
-		else 		{ ' ' }
+		entry.socket    { style_string('s', options.style_so, options) }
+		entry.file      { style_string('f', options.style_fi, options) }
+		else            { ' ' }
 		// vfmt on
 	}
 }
@@ -428,11 +428,11 @@ fn longest_group_name_len(entries []Entry, title string, options Options) int {
 fn longest_size_len(entries []Entry, title string, options Options) int {
 	lengths := entries.map(match true {
 		// vfmt off
-		it.dir 				    { 1 } // '-'
+		it.dir                              { 1 } // '-'
 		options.size_ki && !options.size_kb { it.size_ki.len }
-		options.size_kb 		    { it.size_kb.len }
-		options.size_comma 		    { it.size_comma.len }
-		else 				    { it.size.str().len }
+		options.size_kb                     { it.size_kb.len }
+		options.size_comma                  { it.size_comma.len }
+		else                                { it.size.str().len }
 		// vfmt on
 	})
 	max := arrays.max(lengths) or { 0 }

@@ -81,28 +81,26 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 	indicator := if is_dir && options.dir_indicator { '/' } else { '' }
 
 	return Entry{
-		// vfmt off
-		name: 		file + indicator
-		dir_name: 	dir_name
-		stat: 		stat
-		link_stat: 	link_stat
-		dir: 		is_dir
-		file: 		is_file
-		link: 		is_link
-		exe: 		is_exe
-		fifo: 		is_fifo
-		block: 		is_block
-		socket: 	is_socket
-		character: 	is_character_device
-		unknown: 	is_unknown
-		link_origin: 	link_origin
-		size: 		size
-		size_comma:     if options.size_comma { num_with_commas(size)} else { '' }
-		size_ki: 	if options.size_ki { readable_size(size, true) } else { '' }
-		size_kb: 	if options.size_kb { readable_size(size, false) } else { '' }
-		checksum: 	if is_file { checksum(file, dir_name, options) } else { '' }
-		invalid: 	invalid
-		// vfmt on
+		name:        file + indicator
+		dir_name:    dir_name
+		stat:        stat
+		link_stat:   link_stat
+		dir:         is_dir
+		file:        is_file
+		link:        is_link
+		exe:         is_exe
+		fifo:        is_fifo
+		block:       is_block
+		socket:      is_socket
+		character:   is_character_device
+		unknown:     is_unknown
+		link_origin: link_origin
+		size:        size
+		size_comma:  if options.size_comma { num_with_commas(size) } else { '' }
+		size_ki:     if options.size_ki { readable_size(size, true) } else { '' }
+		size_kb:     if options.size_kb { readable_size(size, false) } else { '' }
+		checksum:    if is_file { checksum(file, dir_name, options) } else { '' }
+		invalid:     invalid
 	}
 }
 
