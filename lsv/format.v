@@ -176,10 +176,9 @@ fn get_style_for_link(entry Entry, options Options) Style {
 }
 
 fn format_entry_name(entry Entry, options Options) string {
-	name := if options.relative_path {
-		os.join_path(entry.dir_name, entry.name)
-	} else {
-		entry.name
+	name := match options.relative_path {
+		true { os.join_path(entry.dir_name, entry.name) }
+		else { entry.name }
 	}
 
 	icon := get_icon_for_entry(entry, options)

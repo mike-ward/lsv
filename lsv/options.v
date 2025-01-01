@@ -41,7 +41,6 @@ struct Options {
 	// long view options
 	accessed_date         bool
 	changed_date          bool
-	comma                 bool
 	header                bool
 	inode                 bool
 	no_count              bool
@@ -52,6 +51,7 @@ struct Options {
 	no_permissions        bool
 	no_size               bool
 	octal_permissions     bool
+	size_comma            bool
 	size_kb               bool
 	size_ki               bool
 	time_iso              bool
@@ -106,7 +106,7 @@ fn parse_args(args []string) Options {
 	sort_ext := fp.bool('', `x`, false, 'sort by file extension')
 	sort_none := fp.bool('', `u`, false, 'no sorting\n\nLong Listing Options:')
 
-	comma := fp.bool('', `,`, false, 'show file sizes grouped and separated by thousands')
+	size_comma := fp.bool('', `,`, false, 'show file sizes grouped and separated by thousands')
 	blocked_output := fp.bool('', `b`, false, 'blank line every 5 rows')
 	table_format := fp.bool('', `B`, false, 'add borders to long listing format')
 	size_ki := fp.bool('', `k`, false, 'sizes in kibibytes (1024) (e.g. 1k 234m 2g)')
@@ -148,7 +148,6 @@ fn parse_args(args []string) Options {
 		changed_date:          changed_date
 		checksum:              checksum
 		colorize:              colorize && can_show_color_on_stdout
-		comma:                 comma
 		dir_indicator:         dir_indicator
 		dirs_first:            dirs_first
 		files:                 if files == [] { current_dir } else { files }
@@ -174,6 +173,7 @@ fn parse_args(args []string) Options {
 		recursion_depth:       recursion_depth
 		recursive:             recursive
 		relative_path:         relative_path
+		size_comma:            size_comma
 		size_kb:               size_kb
 		size_ki:               size_ki
 		sort_ext:              sort_ext

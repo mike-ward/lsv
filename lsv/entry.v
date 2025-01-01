@@ -97,7 +97,7 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 		unknown: 	is_unknown
 		link_origin: 	link_origin
 		size: 		size
-		size_comma:     if options.comma { num_with_commas(size)} else { '' }
+		size_comma:     if options.size_comma { num_with_commas(size)} else { '' }
 		size_ki: 	if options.size_ki { readable_size(size, true) } else { '' }
 		size_kb: 	if options.size_kb { readable_size(size, false) } else { '' }
 		checksum: 	if is_file { checksum(file, dir_name, options) } else { '' }
