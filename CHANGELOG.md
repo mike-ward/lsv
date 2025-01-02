@@ -4,8 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [2025.1 (pending)]
 ### Added
-- add implied . and .. folders to -a option
+- implied . and .. folders to -a option
 - almost all option (-A)
+- full path option (-F)
 
 ## [2024.6]
 ### Added

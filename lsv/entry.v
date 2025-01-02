@@ -79,9 +79,10 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 	is_exe := !is_dir && is_executable(stat)
 	is_file := filetype == .regular
 	indicator := if is_dir && options.dir_indicator { '/' } else { '' }
+	name := if options.full_path { os.real_path(path) + indicator } else { file + indicator }
 
 	return Entry{
-		name:        file + indicator
+		name:        name
 		dir_name:    dir_name
 		stat:        stat
 		link_stat:   link_stat

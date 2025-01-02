@@ -11,6 +11,7 @@ struct Options {
 	blocked_output bool
 	colorize       bool
 	dir_indicator  bool
+	full_path      bool
 	list_by_lines  bool
 	long_format    bool
 	no_dim         bool
@@ -88,6 +89,7 @@ fn parse_args(args []string) Options {
 	almost_all := fp.bool('', `A`, false, 'do not list implied . and ..')
 	colorize := fp.bool('', `c`, false, 'color the listing')
 	dir_indicator := fp.bool('', `D`, false, 'append / to directories')
+	full_path := fp.bool('', `F`, false, 'show full path')
 	icons := fp.bool('', `i`, false, 'show file icon (requires nerd fonts)')
 	long_format := fp.bool('', `l`, false, 'long listing format (see Long Listing Options)')
 	with_commas := fp.bool('', `m`, false, 'list of files separated by commas')
@@ -156,6 +158,7 @@ fn parse_args(args []string) Options {
 		dir_indicator:         dir_indicator
 		dirs_first:            dirs_first
 		files:                 if files == [] { current_dir } else { files }
+		full_path:             full_path
 		header:                header
 		icons:                 icons
 		inode:                 inode
