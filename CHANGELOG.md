@@ -2,12 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2025.1 (pending)]
+### Added
+- add implied . and .. folders to -a option
+- almost all option (-A)
+
 ## [2024.6]
 ### Added
 - , (comma) flag to print file sizes grouped and separated by thousands.
+- --ignore-case option
 
-### Update
-- icons
+### Updated
+- updated icons
 
 ## [2024.5]
 ### Added

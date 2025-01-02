@@ -25,6 +25,7 @@ struct Options {
 	//
 	// filter, group and sorting options
 	all              bool
+	almost_all       bool
 	dirs_first       bool
 	only_dirs        bool
 	only_files       bool
@@ -84,6 +85,7 @@ fn parse_args(args []string) Options {
 	fp.arguments_description('[FILES]')
 
 	all := fp.bool('', `a`, false, 'include files starting with .')
+	almost_all := fp.bool('', `A`, false, 'do not list implied . and ..')
 	colorize := fp.bool('', `c`, false, 'color the listing')
 	dir_indicator := fp.bool('', `D`, false, 'append / to directories')
 	icons := fp.bool('', `i`, false, 'show file icon (requires nerd fonts)')
@@ -115,8 +117,8 @@ fn parse_args(args []string) Options {
 	size_kb := fp.bool('', `K`, false, 'sizes in Kilobytes (1000) (e.g. 1kb 234mb 2gb)')
 	octal_permissions := fp.bool('', `o`, false, 'show octal permissions')
 	relative_path := fp.bool('', `p`, false, 'show relative path')
-	accessed_date := fp.bool('', `A`, false, 'show last accessed date')
 	changed_date := fp.bool('', `C`, false, 'show last status changed date')
+	accessed_date := fp.bool('', `E`, false, 'show last accessed date')
 	header := fp.bool('', `H`, false, 'show column headers')
 	time_iso := fp.bool('', `I`, false, 'show time in iso format')
 	time_compact := fp.bool('', `J`, false, 'show time in compact format')
@@ -145,6 +147,7 @@ fn parse_args(args []string) Options {
 
 	return Options{
 		all:                   all
+		almost_all:            almost_all
 		accessed_date:         accessed_date
 		blocked_output:        blocked_output
 		changed_date:          changed_date

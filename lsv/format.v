@@ -11,7 +11,18 @@ enum Align {
 	right
 }
 
-fn print_files(entries []Entry, options Options) {
+fn print_files(entries_arg []Entry, options Options) {
+	entries := match true {
+		options.all && !options.almost_all {
+			dot := make_entry('.', '.', options)
+			dot_dot := make_entry('..', '.', options)
+			arrays.concat([dot, dot_dot], ...entries_arg)
+		}
+		else {
+			entries_arg
+		}
+	}
+
 	w, _ := term.get_terminal_size()
 	options_width_ok := options.width_in_cols > 0 && options.width_in_cols < 1000
 	width := if options_width_ok { options.width_in_cols } else { w }

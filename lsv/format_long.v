@@ -330,15 +330,20 @@ fn statistics(entries []Entry, len int, options Options) {
 
 	size := match true {
 		// vfmt off
+		options.size_comma { num_with_commas(total) }
 		options.size_ki    { readable_size(total, true) }
 		options.size_kb    { readable_size(total, false) }
-		options.size_comma { num_with_commas(total) + ' bytes' }
 		else               { total.str() }
 		// vfmt on
 	}
 
 	totals := style_string(size, options.style_fi, options)
-	stats = '${dir_count_styled} ${dirs} | ${file_count_styled} ${files} | ${totals}'
+	totals_units := if !options.size_ki && !options.size_kb {
+		style_string('bytes', dim, options)
+	} else {
+		''
+	}
+	stats = '${dir_count_styled} ${dirs} | ${file_count_styled} ${files} | ${totals} ${totals_units}'
 
 	if link_count > 0 {
 		link_count_styled := style_string(link_count.str(), options.style_ln, options)
