@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 - implied . and .. folders to -a option
 - almost all option (-A)
 - full path option (-F)
+- add relative time option (-T)
 
 ## [2024.6]
 ### Added

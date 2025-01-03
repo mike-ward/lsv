@@ -31,6 +31,9 @@ struct Longest {
 	size       int
 	checksum   int
 	file       int
+	mtime      int
+	atime      int
+	ctime      int
 }
 
 enum StatTime {
@@ -87,7 +90,8 @@ fn format_long_listing(entries []Entry, options Options) {
 			print_space()
 
 			content := permissions(entry, options)
-			print(format_cell(content, permissions_title.len, .right, no_style, options))
+			print(format_cell(content, real_length(permissions_title), .right, no_style,
+				options))
 			print_space()
 		}
 
@@ -142,19 +146,25 @@ fn format_long_listing(entries []Entry, options Options) {
 
 		// date/time(modified)
 		if !options.no_date {
-			print(format_time(entry, .modified, options))
+			ftime := format_time(entry, .modified, options)
+			fcell := format_cell(ftime, longest.mtime, .right, dim, options)
+			print(fcell)
 			print_space()
 		}
 
 		// date/time (accessed)
 		if options.accessed_date {
-			print(format_time(entry, .accessed, options))
+			ftime := format_time(entry, .modified, options)
+			fcell := format_cell(ftime, longest.atime, .right, dim, options)
+			print(fcell)
 			print_space()
 		}
 
 		// date/time (status change)
 		if options.changed_date {
-			print(format_time(entry, .changed, options))
+			ftime := format_time(entry, .modified, options)
+			fcell := format_cell(ftime, longest.ctime, .right, dim, options)
+			print(fcell)
 			print_space()
 		}
 
@@ -198,6 +208,9 @@ fn longest_entries(entries []Entry, options Options) Longest {
 		size: 	    longest_size_len(entries, size_title, options)
 		checksum:   longest_checksum_len(entries, options.checksum, options)
 		file: 	    longest_file_name_len(entries, name_title, options)
+		mtime:      if !options.no_date { longest_time(entries, .modified, date_modified_title, options ) } else { 0 }
+		atime:      if options.accessed_date { longest_time(entries, .accessed, date_accessed_title, options ) } else { 0 }
+		ctime:      if options.changed_date { longest_time(entries, .changed, date_status_title, options ) } else { 0 }
 		// vfmt on
 	}
 }
@@ -234,11 +247,11 @@ fn format_header(options Options, longest Longest) (string, []int) {
 	if !options.no_permissions {
 		buffer += 'T ${table_pad}'
 		cols << real_length(buffer) - 1
-		buffer += left_pad(permissions_title, permissions_title.len) + table_pad
+		buffer += left_pad(permissions_title, real_length(permissions_title)) + table_pad
 		cols << real_length(buffer) - 1
 	}
 	if options.octal_permissions {
-		buffer += left_pad(mask_title, mask_title.len) + table_pad
+		buffer += left_pad(mask_title, real_length(mask_title)) + table_pad
 		cols << real_length(buffer) - 1
 	}
 	if !options.no_hard_links {
@@ -263,20 +276,17 @@ fn format_header(options Options, longest Longest) (string, []int) {
 	}
 	if !options.no_date {
 		title := if options.header { date_modified_title } else { '' }
-		width := time_format(options).len
-		buffer += right_pad(title, width) + table_pad
+		buffer += right_pad(title, longest.mtime) + table_pad
 		cols << real_length(buffer) - 1
 	}
 	if options.accessed_date {
 		title := if options.header { date_accessed_title } else { '' }
-		width := time_format(options).len
-		buffer += right_pad(title, width) + table_pad
+		buffer += right_pad(title, longest.atime) + table_pad
 		cols << real_length(buffer) - 1
 	}
 	if options.changed_date {
 		title := if options.header { date_status_title } else { '' }
-		width := time_format(options).len
-		buffer += right_pad(title, width) + table_pad
+		buffer += right_pad(title, longest.ctime) + table_pad
 		cols << real_length(buffer) - 1
 	}
 
@@ -297,17 +307,17 @@ fn time_format(options Options) string {
 }
 
 fn left_pad(s string, width int) string {
-	pad := width - s.len
+	pad := width - real_length(s)
 	return if pad > 0 { space.repeat(pad) + s + space } else { s + space }
 }
 
 fn right_pad(s string, width int) string {
-	pad := width - s.len
+	pad := width - real_length(s)
 	return if pad > 0 { s + space.repeat(pad) + space } else { s + space }
 }
 
 fn right_pad_end(s string, width int) string {
-	pad := width - s.len
+	pad := width - real_length(s)
 	return if pad > 0 { s + space.repeat(pad) } else { s }
 }
 
@@ -399,17 +409,20 @@ fn format_time(entry Entry, stat_time StatTime, options Options) string {
 		.modified { entry.stat.mtime }
 	}
 
-	mut date := time.unix(entry_time)
-		.local()
-		.custom_format(time_format(options))
-
-	if date.starts_with('0') {
-		date = ' ' + date[1..]
+	local := time.unix(entry_time).local()
+	date := if options.time_relative {
+		local.relative_short()
+	} else {
+		mut dt := local.custom_format(time_format(options))
+		if dt.starts_with('0') {
+			' ' + dt[1..]
+		} else {
+			dt
+		}
 	}
 
-	dim := if options.no_dim { no_style } else { dim_style }
-	content := if entry.invalid { '?' + space.repeat(date.len - 1) } else { date }
-	return format_cell(content, date.len, .left, dim, options)
+	content := if entry.invalid { '?' + space.repeat(real_length(date) - 1) } else { date }
+	return content
 }
 
 fn longest_nlink_len(entries []Entry, title string, options Options) int {
@@ -419,15 +432,15 @@ fn longest_nlink_len(entries []Entry, title string, options Options) int {
 }
 
 fn longest_owner_name_len(entries []Entry, title string, options Options) int {
-	lengths := entries.map(get_owner_name(it.stat.uid).len)
+	lengths := entries.map(real_length(get_owner_name(it.stat.uid)))
 	max := arrays.max(lengths) or { 0 }
 	return if options.no_owner_name || !options.header { max } else { max(max, title.len) }
 }
 
 fn longest_group_name_len(entries []Entry, title string, options Options) int {
-	lengths := entries.map(get_group_name(it.stat.gid).len)
+	lengths := entries.map(real_length(get_group_name(it.stat.gid)))
 	max := arrays.max(lengths) or { 0 }
-	return if options.no_group_name || !options.header { max } else { max(max, title.len) }
+	return if options.no_group_name || !options.header { max } else { max(max, real_length(title)) }
 }
 
 fn longest_size_len(entries []Entry, title string, options Options) int {
@@ -441,23 +454,30 @@ fn longest_size_len(entries []Entry, title string, options Options) int {
 		// vfmt on
 	})
 	max := arrays.max(lengths) or { 0 }
-	return if options.no_size || !options.header { max } else { max(max, title.len) }
+	return if options.no_size || !options.header { max } else { max(max, real_length(title)) }
 }
 
 fn longest_inode_len(entries []Entry, title string, options Options) int {
 	lengths := entries.map(it.stat.inode.str().len)
 	max := arrays.max(lengths) or { 0 }
-	return if !options.inode || !options.header { max } else { max(max, title.len) }
+	return if !options.inode || !options.header { max } else { max(max, real_length(title)) }
 }
 
 fn longest_file_name_len(entries []Entry, title string, options Options) int {
 	lengths := entries.map(real_length(format_entry_name(it, options)))
 	max := arrays.max(lengths) or { 0 }
-	return if !options.header { max } else { max(max, title.len) }
+	return if !options.header { max } else { max(max, real_length(title)) }
 }
 
 fn longest_checksum_len(entries []Entry, title string, options Options) int {
 	lengths := entries.map(it.checksum.len)
 	max := arrays.max(lengths) or { 0 }
-	return if !options.header { max } else { max(max, title.len) }
+	return if !options.header { max } else { max(max, real_length(title)) }
+}
+
+fn longest_time(entries []Entry, stat_time StatTime, title string, options Options) int {
+	names := entries.map(format_time(it, stat_time, options))
+	lengths := names.map(real_length(it))
+	max := arrays.max(lengths) or { 0 }
+	return max
 }

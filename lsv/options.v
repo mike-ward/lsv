@@ -60,6 +60,7 @@ struct Options {
 	time_iso              bool
 	time_compact          bool
 	time_compact_with_day bool
+	time_relative         bool
 	checksum              string
 	//
 	// from ls colors
@@ -125,6 +126,7 @@ fn parse_args(args []string) Options {
 	time_iso := fp.bool('', `I`, false, 'show time in iso format')
 	time_compact := fp.bool('', `J`, false, 'show time in compact format')
 	time_compact_with_day := fp.bool('', `L`, false, 'show time in compact format with week day')
+	time_relative := fp.bool('', `T`, false, 'show relative time')
 	inode := fp.bool('', `N`, false, 'show inodes')
 	no_wrap := fp.bool('', `Z`, false, 'do not wrap long lines\n')
 
@@ -204,6 +206,7 @@ fn parse_args(args []string) Options {
 		time_compact:          time_compact
 		time_compact_with_day: time_compact_with_day
 		time_iso:              time_iso
+		time_relative:         time_relative
 		width_in_cols:         width_in_cols
 		with_commas:           with_commas
 	}
