@@ -200,18 +200,44 @@ fn format_long_listing(entries []Entry, options Options) {
 
 fn longest_entries(entries []Entry, options Options) Longest {
 	return Longest{
-		// vfmt off
-		inode: 	    longest_inode_len(entries, inode_title, options)
-		nlink: 	    longest_nlink_len(entries, links_title, options)
-		owner_name: longest_owner_name_len(entries, owner_title, options)
-		group_name: longest_group_name_len(entries, group_title, options)
-		size: 	    longest_size_len(entries, size_title, options)
-		checksum:   longest_checksum_len(entries, options.checksum, options)
-		file: 	    longest_file_name_len(entries, name_title, options)
-		mtime:      if !options.no_date { longest_time(entries, .modified, date_modified_title, options ) } else { 0 }
-		atime:      if options.accessed_date { longest_time(entries, .accessed, date_accessed_title, options ) } else { 0 }
-		ctime:      if options.changed_date { longest_time(entries, .changed, date_status_title, options ) } else { 0 }
-		// vfmt on
+		inode:      if options.inode { longest_inode_len(entries, inode_title, options) } else { 0 }
+		nlink:      if !options.no_hard_links {
+			longest_nlink_len(entries, links_title, options)
+		} else {
+			0
+		}
+		owner_name: if !options.no_owner_name {
+			longest_owner_name_len(entries, owner_title, options)
+		} else {
+			0
+		}
+		group_name: if !options.no_group_name {
+			longest_group_name_len(entries, group_title, options)
+		} else {
+			0
+		}
+		size:       if !options.no_size { longest_size_len(entries, size_title, options) } else { 0 }
+		checksum:   if options.checksum.len == 0 {
+			longest_checksum_len(entries, options.checksum, options)
+		} else {
+			0
+		}
+		file:       longest_file_name_len(entries, name_title, options)
+		mtime:      if !options.no_date {
+			longest_time(entries, .modified, date_modified_title, options)
+		} else {
+			0
+		}
+		atime:      if options.accessed_date {
+			longest_time(entries, .accessed, date_accessed_title, options)
+		} else {
+			0
+		}
+		ctime:      if options.changed_date {
+			longest_time(entries, .changed, date_status_title, options)
+		} else {
+			0
+		}
 	}
 }
 
@@ -479,5 +505,5 @@ fn longest_time(entries []Entry, stat_time StatTime, title string, options Optio
 	names := entries.map(format_time(it, stat_time, options))
 	lengths := names.map(real_length(it))
 	max := arrays.max(lengths) or { 0 }
-	return max
+	return if options.header { max(real_length(title), max) } else { max }
 }
