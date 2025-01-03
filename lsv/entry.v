@@ -4,6 +4,7 @@ import crypto.sha1
 import crypto.sha256
 import crypto.sha512
 import crypto.blake2b
+import net.http.mime
 import math
 
 struct Entry {
@@ -26,6 +27,7 @@ struct Entry {
 	size_ki     string
 	size_kb     string
 	checksum    string
+	mime_type   string
 	invalid     bool // lstat could not access
 }
 
@@ -79,6 +81,9 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 	is_exe := !is_dir && is_executable(stat)
 	is_file := filetype == .regular
 	indicator := if is_dir && options.dir_indicator { '/' } else { '' }
+	if options.mime_type {
+		os.file_ext(file).trim_left('.')
+	}
 	name := if options.full_path { os.real_path(path) + indicator } else { file + indicator }
 
 	return Entry{
@@ -101,6 +106,7 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 		size_ki:     if options.size_ki { readable_size(size, true) } else { '' }
 		size_kb:     if options.size_kb { readable_size(size, false) } else { '' }
 		checksum:    if is_file { checksum(file, dir_name, options) } else { '' }
+		mime_type:   get_mime_type(file, filetype, is_exe)
 		invalid:     invalid
 	}
 }
@@ -153,6 +159,18 @@ fn checksum(name string, dir_name string, options Options) string {
 		else      { unknown }
 		// vfmt on
 	}
+}
+
+fn get_mime_type(file string, file_type os.FileType, is_exe bool) string {
+	if is_exe {
+		return 'application/octet-stream'
+	}
+	if file_type == .block_device || file_type == .character_device || file_type == .directory
+		|| file_type == .fifo || file_type == .symbolic_link || file_type == .socket {
+		return ''
+	}
+	mt := mime.get_mime_type(os.file_ext(file).trim_left('.'))
+	return mt
 }
 
 @[inline]

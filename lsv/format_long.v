@@ -15,6 +15,7 @@ const date_modified_title = 'Modified'
 const date_accessed_title = 'Accessed'
 const date_status_title = 'Status Change'
 const name_title = 'Name'
+const mime_type_title = 'Mime Type'
 const unknown = '?'
 const block_size = 5
 const space = ' '
@@ -34,6 +35,7 @@ struct Longest {
 	mtime      int
 	atime      int
 	ctime      int
+	mime_type  int
 }
 
 enum StatTime {
@@ -69,10 +71,16 @@ fn format_long_listing(entries []Entry, options Options) {
 			print(table_border_pad_left)
 		}
 
+		// mime type
+		if options.mime_type {
+			print(format_cell(entry.mime_type, longest.mime_type, .right, no_style, options))
+			print_space()
+		}
+
 		// inode
 		if options.inode {
 			content := if entry.invalid { unknown } else { entry.stat.inode.str() }
-			print(format_cell(content, longest.inode, Align.right, no_style, options))
+			print(format_cell(content, longest.inode, .right, no_style, options))
 			print_space()
 		}
 
@@ -200,44 +208,19 @@ fn format_long_listing(entries []Entry, options Options) {
 
 fn longest_entries(entries []Entry, options Options) Longest {
 	return Longest{
+		// vfmt off
 		inode:      if options.inode { longest_inode_len(entries, inode_title, options) } else { 0 }
-		nlink:      if !options.no_hard_links {
-			longest_nlink_len(entries, links_title, options)
-		} else {
-			0
-		}
-		owner_name: if !options.no_owner_name {
-			longest_owner_name_len(entries, owner_title, options)
-		} else {
-			0
-		}
-		group_name: if !options.no_group_name {
-			longest_group_name_len(entries, group_title, options)
-		} else {
-			0
-		}
+		nlink:      if !options.no_hard_links { longest_nlink_len(entries, links_title, options) } else { 0 }
+		owner_name: if !options.no_owner_name { longest_owner_name_len(entries, owner_title, options) } else { 0 }
+		group_name: if !options.no_group_name { longest_group_name_len(entries, group_title, options) } else { 0 }
 		size:       if !options.no_size { longest_size_len(entries, size_title, options) } else { 0 }
-		checksum:   if options.checksum.len == 0 {
-			longest_checksum_len(entries, options.checksum, options)
-		} else {
-			0
-		}
+		checksum:   if options.checksum.len == 0 { longest_checksum_len(entries, options.checksum, options) } else { 0 }
 		file:       longest_file_name_len(entries, name_title, options)
-		mtime:      if !options.no_date {
-			longest_time(entries, .modified, date_modified_title, options)
-		} else {
-			0
-		}
-		atime:      if options.accessed_date {
-			longest_time(entries, .accessed, date_accessed_title, options)
-		} else {
-			0
-		}
-		ctime:      if options.changed_date {
-			longest_time(entries, .changed, date_status_title, options)
-		} else {
-			0
-		}
+		mtime:      if !options.no_date { longest_time(entries, .modified, date_modified_title, options) } else { 0 }
+		atime:      if options.accessed_date { longest_time(entries, .accessed, date_accessed_title, options) } else { 0 }
+		ctime:      if options.changed_date { longest_time(entries, .changed, date_status_title, options) } else { 0 }
+		mime_type:  if options.mime_type { longest_mime_type(entries, mime_type_title, options) } else { 0 }
+		// vfmt on
 	}
 }
 
@@ -258,6 +241,11 @@ fn format_header(options Options, longest Longest) (string, []int) {
 
 	if options.table_format {
 		buffer += table_border_pad_left
+	}
+	if options.mime_type {
+		title := if options.header { mime_type_title } else { '' }
+		buffer += right_pad(title, longest.mime_type) + table_pad
+		cols << real_length(buffer) - 1
 	}
 	if options.inode {
 		title := if options.header { inode_title } else { '' }
@@ -439,7 +427,7 @@ fn format_time(entry Entry, stat_time StatTime, options Options) string {
 	date := if options.time_relative {
 		local.relative_short()
 	} else {
-		mut dt := local.custom_format(time_format(options))
+		dt := local.custom_format(time_format(options))
 		if dt.starts_with('0') {
 			' ' + dt[1..]
 		} else {
@@ -505,5 +493,11 @@ fn longest_time(entries []Entry, stat_time StatTime, title string, options Optio
 	names := entries.map(format_time(it, stat_time, options))
 	lengths := names.map(real_length(it))
 	max := arrays.max(lengths) or { 0 }
+	return if options.header { max(real_length(title), max) } else { max }
+}
+
+fn longest_mime_type(entries []Entry, title string, options Options) int {
+	mime_types := entries.map(it.mime_type.len)
+	max := arrays.max(mime_types) or { 0 }
 	return if options.header { max(real_length(title), max) } else { max }
 }

@@ -61,6 +61,7 @@ struct Options {
 	time_compact          bool
 	time_compact_with_day bool
 	time_relative         bool
+	mime_type             bool
 	checksum              string
 	//
 	// from ls colors
@@ -127,6 +128,7 @@ fn parse_args(args []string) Options {
 	time_compact := fp.bool('', `J`, false, 'show time in compact format')
 	time_compact_with_day := fp.bool('', `L`, false, 'show time in compact format with week day')
 	time_relative := fp.bool('', `T`, false, 'show relative time')
+	mime_type := fp.bool('', `M`, false, 'show mime type')
 	inode := fp.bool('', `N`, false, 'show inodes')
 	no_wrap := fp.bool('', `Z`, false, 'do not wrap long lines\n')
 
@@ -166,6 +168,7 @@ fn parse_args(args []string) Options {
 		inode:                 inode
 		list_by_lines:         list_by_lines
 		long_format:           long_format
+		mime_type:             mime_type
 		no_count:              no_count
 		no_date:               no_date
 		no_dim:                no_dim

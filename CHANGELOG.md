@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - almost all option (-A)
 - full path option (-F)
 - add relative time option (-T)
+= add mime type (-M)
 
 ## [2024.6]
 ### Added
