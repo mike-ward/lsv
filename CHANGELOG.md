@@ -7,8 +7,9 @@ All notable changes to this project will be documented in this file.
 - implied . and .. folders to -a option
 - almost all option (-A)
 - full path option (-F)
-- add relative time option (-T)
-= add mime type (-M)
+- relative time option (-T)
+- mime type (-M)
+- entry number (-#)
 
 ## [2024.6]
 ### Added

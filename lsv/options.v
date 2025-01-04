@@ -22,6 +22,7 @@ struct Options {
 	width_in_cols  int
 	with_commas    bool
 	icons          bool
+	index          bool
 	no_wrap        bool
 	//
 	// filter, group and sorting options
@@ -82,7 +83,7 @@ fn parse_args(args []string) Options {
 	mut fp := flag.new_flag_parser(args)
 
 	fp.application(app_name)
-	fp.version('2024.6')
+	fp.version('2025.1(pre)')
 	fp.skip_executable()
 	fp.description('List information about FILES')
 	fp.arguments_description('[FILES]')
@@ -119,6 +120,7 @@ fn parse_args(args []string) Options {
 	size_comma := fp.bool('', `,`, false, 'sizes comma separated by thousands')
 	size_ki := fp.bool('', `k`, false, 'sizes in kibibytes (1024) (e.g. 1k 234m 2g)')
 	size_kb := fp.bool('', `K`, false, 'sizes in Kilobytes (1000) (e.g. 1kb 234mb 2gb)')
+	index := fp.bool('', `#`, false, 'show entry number')
 	octal_permissions := fp.bool('', `o`, false, 'show octal permissions')
 	relative_path := fp.bool('', `p`, false, 'show relative path')
 	changed_date := fp.bool('', `C`, false, 'show last status changed date')
@@ -165,6 +167,7 @@ fn parse_args(args []string) Options {
 		full_path:             full_path
 		header:                header
 		icons:                 icons
+		index:                 index
 		inode:                 inode
 		list_by_lines:         list_by_lines
 		long_format:           long_format

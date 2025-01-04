@@ -4,38 +4,40 @@ import term
 import time
 import v.mathutil { max }
 
-const inode_title = 'inode'
-const permissions_title = 'Permissions'
-const mask_title = 'Mask'
-const links_title = 'Links'
-const owner_title = 'Owner'
-const group_title = 'Group'
-const size_title = 'Size'
-const date_modified_title = 'Modified'
-const date_accessed_title = 'Accessed'
-const date_status_title = 'Status Change'
-const name_title = 'Name'
-const mime_type_title = 'Mime Type'
-const unknown = '?'
 const block_size = 5
-const space = ' '
-const date_format = 'MMM DD YYYY HH:mm:ss'
-const date_iso_format = 'YYYY-MM-DD HH:mm:ss'
+const date_accessed_title = 'Accessed'
 const date_compact_format = "DD MMM'YY HH:mm"
 const date_compact_format_with_day = "ddd DD MMM'YY HH:mm"
+const date_format = 'MMM DD YYYY HH:mm:ss'
+const date_iso_format = 'YYYY-MM-DD HH:mm:ss'
+const date_modified_title = 'Modified'
+const date_status_title = 'Status Change'
+const group_title = 'Group'
+const index_title = '#'
+const inode_title = 'inode'
+const links_title = 'Links'
+const mask_title = 'Mask'
+const mime_type_title = 'Mime Type'
+const name_title = 'Name'
+const owner_title = 'Owner'
+const permissions_title = 'Permissions'
+const size_title = 'Size'
+const space = ' '
+const unknown = '?'
 
 struct Longest {
+	atime      int
+	checksum   int
+	ctime      int
+	file       int
+	group_name int
+	index      int
 	inode      int
+	mime_type  int
+	mtime      int
 	nlink      int
 	owner_name int
-	group_name int
 	size       int
-	checksum   int
-	file       int
-	mtime      int
-	atime      int
-	ctime      int
-	mime_type  int
 }
 
 enum StatTime {
@@ -69,6 +71,12 @@ fn format_long_listing(entries []Entry, options Options) {
 		// left table border
 		if options.table_format {
 			print(table_border_pad_left)
+		}
+
+		// index
+		if options.index {
+			print(format_cell(idx.str(), longest.index, .left, dim, options))
+			print_space()
 		}
 
 		// mime type
@@ -209,17 +217,18 @@ fn format_long_listing(entries []Entry, options Options) {
 fn longest_entries(entries []Entry, options Options) Longest {
 	return Longest{
 		// vfmt off
+		atime:      if options.accessed_date { longest_time(entries, .accessed, date_accessed_title, options) } else { 0 }
+		checksum:   if options.checksum.len == 0 { longest_checksum_len(entries, options.checksum, options) } else { 0 }
+		ctime:      if options.changed_date { longest_time(entries, .changed, date_status_title, options) } else { 0 }
+		file:       longest_file_name_len(entries, name_title, options)
+		group_name: if !options.no_group_name { longest_group_name_len(entries, group_title, options) } else { 0 }
+		index:      if options.index { longest_index(entries, index_title) } else { 0 }
 		inode:      if options.inode { longest_inode_len(entries, inode_title, options) } else { 0 }
+		mime_type:  if options.mime_type { longest_mime_type(entries, mime_type_title, options) } else { 0 }
+		mtime:      if !options.no_date { longest_time(entries, .modified, date_modified_title, options) } else { 0 }
 		nlink:      if !options.no_hard_links { longest_nlink_len(entries, links_title, options) } else { 0 }
 		owner_name: if !options.no_owner_name { longest_owner_name_len(entries, owner_title, options) } else { 0 }
-		group_name: if !options.no_group_name { longest_group_name_len(entries, group_title, options) } else { 0 }
 		size:       if !options.no_size { longest_size_len(entries, size_title, options) } else { 0 }
-		checksum:   if options.checksum.len == 0 { longest_checksum_len(entries, options.checksum, options) } else { 0 }
-		file:       longest_file_name_len(entries, name_title, options)
-		mtime:      if !options.no_date { longest_time(entries, .modified, date_modified_title, options) } else { 0 }
-		atime:      if options.accessed_date { longest_time(entries, .accessed, date_accessed_title, options) } else { 0 }
-		ctime:      if options.changed_date { longest_time(entries, .changed, date_status_title, options) } else { 0 }
-		mime_type:  if options.mime_type { longest_mime_type(entries, mime_type_title, options) } else { 0 }
 		// vfmt on
 	}
 }
@@ -241,6 +250,11 @@ fn format_header(options Options, longest Longest) (string, []int) {
 
 	if options.table_format {
 		buffer += table_border_pad_left
+	}
+	if options.index {
+		title := if options.header { index_title } else { '' }
+		buffer += right_pad(title, longest.index) + table_pad
+		cols << real_length(buffer) - 1
 	}
 	if options.mime_type {
 		title := if options.header { mime_type_title } else { '' }
@@ -500,4 +514,8 @@ fn longest_mime_type(entries []Entry, title string, options Options) int {
 	mime_types := entries.map(it.mime_type.len)
 	max := arrays.max(mime_types) or { 0 }
 	return if options.header { max(real_length(title), max) } else { max }
+}
+
+fn longest_index(entries []Entry, title string) int {
+	return max(real_length(title), entries.len.str().len)
 }
