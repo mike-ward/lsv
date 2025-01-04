@@ -81,9 +81,6 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 	is_exe := !is_dir && is_executable(stat)
 	is_file := filetype == .regular
 	indicator := if is_dir && options.dir_indicator { '/' } else { '' }
-	if options.mime_type {
-		os.file_ext(file).trim_left('.')
-	}
 	name := if options.full_path { os.real_path(path) + indicator } else { file + indicator }
 
 	return Entry{
@@ -106,7 +103,7 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 		size_ki:     if options.size_ki { readable_size(size, true) } else { '' }
 		size_kb:     if options.size_kb { readable_size(size, false) } else { '' }
 		checksum:    if is_file { checksum(file, dir_name, options) } else { '' }
-		mime_type:   get_mime_type(file, filetype, is_exe)
+		mime_type:   get_mime_type(file, link_origin, is_exe)
 		invalid:     invalid
 	}
 }
@@ -161,16 +158,36 @@ fn checksum(name string, dir_name string, options Options) string {
 	}
 }
 
-fn get_mime_type(file string, file_type os.FileType, is_exe bool) string {
+const text_plain_names = [
+	'CARGO.LOCK',
+	'CMAKE',
+	'CNAME',
+	'DOCKERFILE',
+	'GEMFILE',
+	'GEMFILE.LOCK',
+	'GNUMAKEFILE',
+	'LICENSE',
+	'MAKEFILE',
+	'TEXT',
+	'V.MOD',
+]
+
+fn get_mime_type(file string, link_origin string, is_exe bool) string {
+	if link_origin.len > 0 {
+		return mime.get_mime_type(os.file_ext(link_origin).trim_left('.'))
+	}
+	ext := os.file_ext(file).trim_left('.')
+	mt := mime.get_mime_type(ext)
+	if mt.len > 0 {
+		return mt
+	}
 	if is_exe {
 		return 'application/octet-stream'
 	}
-	if file_type == .block_device || file_type == .character_device || file_type == .directory
-		|| file_type == .fifo || file_type == .symbolic_link || file_type == .socket {
-		return ''
+	if file.to_upper() in text_plain_names || ext.to_upper() in text_plain_names {
+		return 'text/plain'
 	}
-	mt := mime.get_mime_type(os.file_ext(file).trim_left('.'))
-	return mt
+	return ''
 }
 
 @[inline]

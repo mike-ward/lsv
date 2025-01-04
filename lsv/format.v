@@ -167,7 +167,7 @@ fn get_style_for_link(entry Entry, options Options) Style {
 	is_socket := filetype == .socket
 	is_character_device := filetype == .character_device
 	is_unknown := filetype == .unknown
-	is_exe := is_executable(entry.link_stat)
+	is_exe := !is_dir && is_executable(entry.link_stat)
 	is_file := !is_dir && !is_fifo && !is_block && !is_socket && !is_character_device && !is_unknown
 		&& !is_exe
 
