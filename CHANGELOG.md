@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - relative time option (-T)
 - mime type (-M)
 - entry number (-#)
+- --before, --after TIME options
 
 ## [2024.6]
 ### Added

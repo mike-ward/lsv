@@ -26,21 +26,27 @@ struct Options {
 	no_wrap        bool
 	//
 	// filter, group and sorting options
-	all              bool
-	almost_all       bool
-	dirs_first       bool
-	only_dirs        bool
-	only_files       bool
-	recursion_depth  int
-	recursive        bool
-	sort_ext         bool
-	sort_ignore_case bool
-	sort_natural     bool
-	sort_none        bool
-	sort_reverse     bool
-	sort_size        bool
-	sort_time        bool
-	sort_width       bool
+	all                  bool
+	almost_all           bool
+	dirs_first           bool
+	only_dirs            bool
+	only_files           bool
+	recursion_depth      int
+	recursive            bool
+	sort_ext             bool
+	sort_ignore_case     bool
+	sort_natural         bool
+	sort_none            bool
+	sort_reverse         bool
+	sort_size            bool
+	sort_time            bool
+	sort_width           bool
+	time_before_modified string
+	time_before_accessed string
+	time_before_changed  string
+	time_after_modified  string
+	time_after_accessed  string
+	time_after_changed   string
 	//
 	// long view options
 	accessed_date         bool
@@ -105,7 +111,7 @@ fn parse_args(args []string) Options {
 	width_in_cols := fp.int('width', 0, 0, 'set output width to <int>\n\nFiltering and Sorting Options:')
 	only_dirs := fp.bool('', `d`, false, 'list only directories')
 	only_files := fp.bool('', `f`, false, 'list only files')
-	dirs_first := fp.bool('', `g`, false, 'group directories before files')
+	dirs_first := fp.bool('', `g`, false, 'sort directories before files')
 	sort_reverse := fp.bool('', `r`, false, 'reverse the listing order')
 	sort_size := fp.bool('', `s`, false, 'sort by file size, largest first')
 	sort_time := fp.bool('', `t`, false, 'sort by time, newest first')
@@ -113,6 +119,12 @@ fn parse_args(args []string) Options {
 	sort_width := fp.bool('', `w`, false, 'sort by width, shortest first')
 	sort_ext := fp.bool('', `x`, false, 'sort by file extension')
 	sort_none := fp.bool('', `u`, false, 'no sorting\n')
+	time_after_modifed := fp.string('after', 0, '', 'after modified time <string>')
+	time_after_accessed := fp.string('after-access ', 0, '', 'after access time <string>')
+	time_after_changed := fp.string('after-change', 0, '', 'after change time <string>')
+	time_before_modifed := fp.string('before', 0, '', 'before modified time <string>')
+	time_before_accessed := fp.string('before-access', 0, '', 'before access time <string>')
+	time_before_changed := fp.string('before-change', 0, '', 'before change time <string>\n${flag.space}<string> is any ISO 8601 time format)\n')
 	sort_ignore_case := fp.bool('ignore-case', 0, false, 'ignore case when sorting\n\nLong Listing Options:')
 
 	blocked_output := fp.bool('', `b`, false, 'blank line every 5 rows')
@@ -132,7 +144,7 @@ fn parse_args(args []string) Options {
 	time_relative := fp.bool('', `T`, false, 'show relative time')
 	mime_type := fp.bool('', `M`, false, 'show mime type')
 	inode := fp.bool('', `N`, false, 'show inodes')
-	no_wrap := fp.bool('', `Z`, false, 'do not wrap long lines\n')
+	no_wrap := fp.bool('', `W`, false, 'do not wrap long lines\n')
 
 	checksum := fp.string('cs', 0, '', 'show file checksum\n${flag.space}(md5, sha1, sha224, sha256, sha512, blake2b)')
 	no_count := fp.bool('no-counts', 0, false, 'hide file/dir counts')
@@ -209,6 +221,12 @@ fn parse_args(args []string) Options {
 		style_pi:              style_map['pi']
 		style_so:              style_map['so']
 		table_format:          table_format && long_format
+		time_before_modified:  time_before_modifed
+		time_before_accessed:  time_before_accessed
+		time_before_changed:   time_before_changed
+		time_after_modified:   time_after_modifed
+		time_after_accessed:   time_after_accessed
+		time_after_changed:    time_after_changed
 		time_compact:          time_compact
 		time_compact_with_day: time_compact_with_day
 		time_iso:              time_iso
