@@ -143,8 +143,7 @@ fn parse_args(args []string) Options {
 	time_compact_with_day := fp.bool('', `L`, false, 'show time in compact format with week day')
 	time_relative := fp.bool('', `T`, false, 'show relative time')
 	mime_type := fp.bool('', `M`, false, 'show mime type')
-	inode := fp.bool('', `N`, false, 'show inodes')
-	no_wrap := fp.bool('', `W`, false, 'do not wrap long lines\n')
+	inode := fp.bool('', `N`, false, 'show inodes\n')
 
 	checksum := fp.string('cs', 0, '', 'show file checksum\n${flag.space}(md5, sha1, sha224, sha256, sha512, blake2b)')
 	no_count := fp.bool('no-counts', 0, false, 'hide file/dir counts')
@@ -154,7 +153,8 @@ fn parse_args(args []string) Options {
 	no_hard_links := fp.bool('no-hard-links', 0, false, 'hide hard links count')
 	no_owner_name := fp.bool('no-owner', 0, false, 'hide owner name')
 	no_permissions := fp.bool('no-permissions', 0, false, 'hide permissions')
-	no_size := fp.bool('no-size', 0, false, 'hide file size\n')
+	no_size := fp.bool('no-size', 0, false, 'hide file size')
+	no_wrap := fp.bool('no-wrap', 0, false, 'do not wrap long lines\n')
 
 	fp.footer('\n
 		The -c option emits color codes when standard output is
