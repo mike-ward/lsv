@@ -124,7 +124,9 @@ fn parse_args(args []string) Options {
 	time_after_changed := fp.string('after-change', 0, '', 'after change time <string>')
 	time_before_modifed := fp.string('before', 0, '', 'before modified time <string>')
 	time_before_accessed := fp.string('before-access', 0, '', 'before access time <string>')
-	time_before_changed := fp.string('before-change', 0, '', 'before change time <string>\n${flag.space}<string> is any ISO 8601 time format)\n')
+	time_before_changed := fp.string('before-change', 0, '', 'before change time <string>\n\n' +
+		'${flag.space}where time <string> is an ISO 8601 format.\n' +
+		'${flag.space}See: https://ijmacd.github.io/rfc3339-iso8601\n')
 	sort_ignore_case := fp.bool('ignore-case', 0, false, 'ignore case when sorting\n\nLong Listing Options:')
 
 	blocked_output := fp.bool('', `b`, false, 'blank line every 5 rows')
