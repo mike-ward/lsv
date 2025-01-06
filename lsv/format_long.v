@@ -6,7 +6,7 @@ import v.mathutil { max }
 
 const block_size = 5
 const date_accessed_title = 'Accessed'
-const date_compact_format = "DD MMM'YY HH:mm"
+const date_compact_format = "DD.MMM'YY HH:mm"
 const date_compact_format_with_day = "ddd DD MMM'YY HH:mm"
 const date_format = 'MMM DD YYYY HH:mm:ss'
 const date_iso_format = 'YYYY-MM-DD HH:mm:ss'
@@ -56,6 +56,10 @@ fn format_long_listing(entries []Entry, options Options) {
 	print_header_border(options, header_len, cols)
 
 	dim := if options.no_dim { no_style } else { dim_style }
+	time_style := Style{
+		...options.style_di
+		dim: !options.no_dim
+	}
 
 	for idx, entry in entries {
 		// emit blank row every 5th row
@@ -163,7 +167,7 @@ fn format_long_listing(entries []Entry, options Options) {
 		// date/time(modified)
 		if !options.no_date {
 			ftime := format_time(entry, .modified, options)
-			fcell := format_cell(ftime, longest.mtime, .right, dim, options)
+			fcell := format_cell(ftime, longest.mtime, .right, time_style, options)
 			print(fcell)
 			print_space()
 		}
@@ -171,7 +175,7 @@ fn format_long_listing(entries []Entry, options Options) {
 		// date/time (accessed)
 		if options.accessed_date {
 			ftime := format_time(entry, .modified, options)
-			fcell := format_cell(ftime, longest.atime, .right, dim, options)
+			fcell := format_cell(ftime, longest.atime, .right, time_style, options)
 			print(fcell)
 			print_space()
 		}
@@ -179,7 +183,7 @@ fn format_long_listing(entries []Entry, options Options) {
 		// date/time (status change)
 		if options.changed_date {
 			ftime := format_time(entry, .modified, options)
-			fcell := format_cell(ftime, longest.ctime, .right, dim, options)
+			fcell := format_cell(ftime, longest.ctime, .right, time_style, options)
 			print(fcell)
 			print_space()
 		}
