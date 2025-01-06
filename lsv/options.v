@@ -29,6 +29,8 @@ struct Options {
 	all                  bool
 	almost_all           bool
 	dirs_first           bool
+	glob_ignore          string
+	glob_match           string
 	only_dirs            bool
 	only_files           bool
 	recursion_depth      int
@@ -127,6 +129,9 @@ fn parse_args(args []string) Options {
 	time_before_changed := fp.string('before-change', 0, '', 'before change time <string>\n\n' +
 		'${flag.space}where time <string> is an ISO 8601 format.\n' +
 		'${flag.space}See: https://ijmacd.github.io/rfc3339-iso8601\n')
+
+	glob_ignore := fp.string('ignore', 0, '', 'ignore glob patterns (pipe-separated)')
+	glob_match := fp.string('match', 0, '', 'match glob patterns (pipe-separated)\n')
 	sort_ignore_case := fp.bool('ignore-case', 0, false, 'ignore case when sorting\n\nLong Listing Options:')
 
 	blocked_output := fp.bool('', `b`, false, 'blank line every 5 rows')
@@ -179,6 +184,8 @@ fn parse_args(args []string) Options {
 		dirs_first:            dirs_first
 		files:                 if files == [] { current_dir } else { files }
 		full_path:             full_path
+		glob_ignore:           glob_ignore
+		glob_match:            glob_match
 		header:                header
 		icons:                 icons
 		index:                 index

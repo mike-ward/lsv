@@ -20,6 +20,20 @@ fn filter(entries []Entry, options Options) []Entry {
 		filtered = filtered.filter(it.file)
 	}
 
+	if options.glob_ignore.len > 0 {
+		for glob in options.glob_ignore.split('|') {
+			filtered = filtered.filter(!it.name.match_glob(glob))
+		}
+	}
+
+	if options.glob_match.len > 0 {
+		mut matched := []Entry{}
+		for glob in options.glob_match.split('|') {
+			matched << filtered.filter(it.name.match_glob(glob))
+		}
+		filtered = matched.clone()
+	}
+
 	filtered = filter_time(filtered, options.time_before_modified, .before_modified)
 	filtered = filter_time(filtered, options.time_before_modified, .before_accessed)
 	filtered = filter_time(filtered, options.time_before_modified, .before_changed)

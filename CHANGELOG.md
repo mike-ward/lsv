@@ -8,9 +8,10 @@ All notable changes to this project will be documented in this file.
 - almost all option (-A)
 - full path option (-F)
 - relative time option (-T)
-- mime type (-M)
-- entry number (-#)
+- mime type option (-M)
+- entry number option (-#)
 - --before, --after TIME options
+- --ignore=GLOB, --match=GLOB options
 
 ## [2024.6]
 ### Added
