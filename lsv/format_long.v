@@ -206,7 +206,10 @@ fn format_long_listing(entries []Entry, options Options) {
 			}
 		}
 
-		print_newline()
+		match true {
+			options.null_terminate { print('\0') }
+			else { print_newline() }
+		}
 	}
 
 	// bottom border

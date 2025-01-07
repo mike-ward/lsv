@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2025.1 (pending)]
+## [2025.1]
 ### Added
 - implied . and .. folders to -a option
 - almost all option (-A)
@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - entry number option (-#)
 - --before, --after TIME options
 - --ignore=GLOB, --match=GLOB options
+- --zero option
 
 ## [2024.6]
 ### Added

@@ -53,8 +53,10 @@ struct Options {
 	// long view options
 	accessed_date         bool
 	changed_date          bool
+	checksum              string
 	header                bool
 	inode                 bool
+	mime_type             bool
 	no_count              bool
 	no_date               bool
 	no_group_name         bool
@@ -62,6 +64,7 @@ struct Options {
 	no_owner_name         bool
 	no_permissions        bool
 	no_size               bool
+	null_terminate        bool
 	octal_permissions     bool
 	size_comma            bool
 	size_kb               bool
@@ -70,8 +73,6 @@ struct Options {
 	time_compact          bool
 	time_compact_with_day bool
 	time_relative         bool
-	mime_type             bool
-	checksum              string
 	//
 	// from ls colors
 	style_di Style
@@ -91,7 +92,7 @@ fn parse_args(args []string) Options {
 	mut fp := flag.new_flag_parser(args)
 
 	fp.application(app_name)
-	fp.version('2025.1(pre)')
+	fp.version('v2025.1')
 	fp.skip_executable()
 	fp.description('List information about FILES')
 	fp.arguments_description('[FILES]')
@@ -161,7 +162,8 @@ fn parse_args(args []string) Options {
 	no_owner_name := fp.bool('no-owner', 0, false, 'hide owner name')
 	no_permissions := fp.bool('no-permissions', 0, false, 'hide permissions')
 	no_size := fp.bool('no-size', 0, false, 'hide file size')
-	no_wrap := fp.bool('no-wrap', 0, false, 'do not wrap long lines\n')
+	no_wrap := fp.bool('no-wrap', 0, false, 'do not wrap long lines')
+	null_terminate := fp.bool('zero', 0, false, 'end each output line with NUL, not newline\n')
 
 	fp.footer('\n
 		The -c option emits color codes when standard output is
@@ -202,6 +204,7 @@ fn parse_args(args []string) Options {
 		no_permissions:        no_permissions
 		no_size:               no_size
 		no_wrap:               no_wrap
+		null_terminate:        null_terminate
 		octal_permissions:     octal_permissions
 		one_per_line:          one_per_line
 		only_dirs:             only_dirs
