@@ -1,3 +1,4 @@
+import arrays
 import time
 
 enum ByTime {
@@ -31,7 +32,7 @@ fn filter(entries []Entry, options Options) []Entry {
 		for glob in options.glob_match.split('|') {
 			matched << filtered.filter(it.name.match_glob(glob))
 		}
-		filtered = matched.clone()
+		filtered = arrays.distinct(matched)
 	}
 
 	filtered = filter_time(filtered, options.time_before_modified, .before_modified)

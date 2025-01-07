@@ -31,6 +31,14 @@ struct Entry {
 	invalid     bool // lstat could not access
 }
 
+fn (a Entry) == (b Entry) bool {
+	return a.name == b.name
+}
+
+fn (a Entry) < (b Entry) bool {
+	return a.name < b.name
+}
+
 fn get_entries(files []string, options Options) []Entry {
 	mut entries := []Entry{cap: 50}
 
