@@ -30,7 +30,6 @@ struct Options {
 	almost_all           bool
 	dirs_first           bool
 	glob_ignore          string
-	glob_match           string
 	only_dirs            bool
 	only_files           bool
 	recursion_depth      int
@@ -65,6 +64,7 @@ struct Options {
 	no_permissions        bool
 	no_size               bool
 	null_terminate        bool
+	numeric_ids           bool
 	octal_permissions     bool
 	size_comma            bool
 	size_kb               bool
@@ -92,7 +92,7 @@ fn parse_args(args []string) Options {
 	mut fp := flag.new_flag_parser(args)
 
 	fp.application(app_name)
-	fp.version('v2025.1')
+	fp.version('v2025.2')
 	fp.skip_executable()
 	fp.description('List information about FILES')
 	fp.arguments_description('[FILES]')
@@ -132,7 +132,6 @@ fn parse_args(args []string) Options {
 		'${flag.space}See: https://ijmacd.github.io/rfc3339-iso8601\n')
 
 	glob_ignore := fp.string('ignore', 0, '', 'ignore glob patterns (pipe-separated)')
-	glob_match := fp.string('match', 0, '', 'match glob patterns (pipe-separated)\n')
 	sort_ignore_case := fp.bool('ignore-case', 0, false, 'ignore case when sorting\n\nLong Listing Options:')
 
 	blocked_output := fp.bool('', `b`, false, 'blank line every 5 rows')
@@ -141,6 +140,7 @@ fn parse_args(args []string) Options {
 	size_ki := fp.bool('', `k`, false, 'sizes in kibibytes (1024) (e.g. 1k 234m 2g)')
 	size_kb := fp.bool('', `K`, false, 'sizes in Kilobytes (1000) (e.g. 1kb 234mb 2gb)')
 	index := fp.bool('', `#`, false, 'show entry number')
+	numeric_ids := fp.bool('', `n`, false, 'show owner and group IDs as numbers')
 	octal_permissions := fp.bool('', `o`, false, 'show octal permissions')
 	relative_path := fp.bool('', `p`, false, 'show relative path')
 	changed_date := fp.bool('', `C`, false, 'show last status changed date')
@@ -187,7 +187,6 @@ fn parse_args(args []string) Options {
 		files:                 if files == [] { current_dir } else { files }
 		full_path:             full_path
 		glob_ignore:           glob_ignore
-		glob_match:            glob_match
 		header:                header
 		icons:                 icons
 		index:                 index
@@ -205,6 +204,7 @@ fn parse_args(args []string) Options {
 		no_size:               no_size
 		no_wrap:               no_wrap
 		null_terminate:        null_terminate
+		numeric_ids:           numeric_ids
 		octal_permissions:     octal_permissions
 		one_per_line:          one_per_line
 		only_dirs:             only_dirs

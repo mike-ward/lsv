@@ -28,15 +28,9 @@ struct Entry {
 	size_kb     string
 	checksum    string
 	mime_type   string
+	owner       string
+	group       string
 	invalid     bool // lstat could not access
-}
-
-fn (a Entry) == (b Entry) bool {
-	return a.name == b.name
-}
-
-fn (a Entry) < (b Entry) bool {
-	return a.name < b.name
 }
 
 fn get_entries(files []string, options Options) []Entry {
@@ -111,7 +105,9 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 		size_ki:     if options.size_ki { readable_size(size, true) } else { '' }
 		size_kb:     if options.size_kb { readable_size(size, false) } else { '' }
 		checksum:    if is_file { checksum(file, dir_name, options) } else { '' }
-		mime_type:   get_mime_type(file, link_origin, is_exe)
+		mime_type:   if options.mime_type { get_mime_type(file, link_origin, is_exe) } else { '' }
+		owner:       if options.numeric_ids { stat.uid.str() } else { get_owner_name(stat.uid) }
+		group:       if options.numeric_ids { stat.gid.str() } else { get_group_name(stat.gid) }
 		invalid:     invalid
 	}
 }

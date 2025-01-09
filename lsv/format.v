@@ -100,17 +100,15 @@ fn format_cell(s string, width int, align Align, style Style, options Options) s
 
 fn format_cell_content(s string, width int, align Align, style Style, options Options) string {
 	mut cell := ''
-	no_ansi_s := term.strip_ansi(s)
-	pad := width - no_ansi_s.runes().len
+	pad := width - real_length(s)
 
 	if align == .right && pad > 0 {
 		cell += space.repeat(pad)
 	}
 
-	cell += if options.colorize {
-		style_string(s, style, options)
-	} else {
-		no_ansi_s
+	cell += match options.colorize {
+		true { style_string(s, style, options) }
+		else { s }
 	}
 
 	if align == .left && pad > 0 {
@@ -120,12 +118,12 @@ fn format_cell_content(s string, width int, align Align, style Style, options Op
 	return cell
 }
 
+// surrounds a cell with table borders
 fn format_table_cell(s string, width int, align Align, style Style, options Options) string {
 	cell := format_cell_content(s, width, align, style, options)
 	return '${cell}${table_border_pad_right}'
 }
 
-// surrounds a cell with table borders
 fn print_dir_name(name string, options Options) {
 	if name.len > 0 {
 		print_newline()
@@ -202,7 +200,7 @@ fn format_entry_name(entry Entry, options Options) string {
 			'${icon}${name} -> ${link}${missing}'
 		}
 		options.quote {
-			'"${icon}${name}"'
+			'${icon}"${name}"'
 		}
 		else {
 			'${icon}${name}'
@@ -211,7 +209,7 @@ fn format_entry_name(entry Entry, options Options) string {
 }
 
 fn real_length(s string) int {
-	return term.strip_ansi(s).runes().len
+	return s.runes().len
 }
 
 @[inline]

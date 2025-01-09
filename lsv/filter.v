@@ -1,4 +1,3 @@
-import arrays
 import time
 
 enum ByTime {
@@ -25,14 +24,6 @@ fn filter(entries []Entry, options Options) []Entry {
 		for glob in options.glob_ignore.split('|') {
 			filtered = filtered.filter(!it.name.match_glob(glob))
 		}
-	}
-
-	if options.glob_match.len > 0 {
-		mut matched := []Entry{}
-		for glob in options.glob_match.split('|') {
-			matched << filtered.filter(it.name.match_glob(glob))
-		}
-		filtered = arrays.distinct(matched)
 	}
 
 	filtered = filter_time(filtered, options.time_before_modified, .before_modified)

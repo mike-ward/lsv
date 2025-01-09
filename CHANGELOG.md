@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2025.2]
+### Added
+- numeric-ids - show owner and group IDs as numbers
+
+### Changed
+- minor performance upgrades
+
 ## [2025.1]
 ### Added
 - implied . and .. folders to -a option

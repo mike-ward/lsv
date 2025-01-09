@@ -131,14 +131,14 @@ fn format_long_listing(entries []Entry, options Options) {
 
 		// owner name
 		if !options.no_owner_name {
-			content := if entry.invalid { unknown } else { get_owner_name(entry.stat.uid) }
+			content := if entry.invalid { unknown } else { entry.owner }
 			print(format_cell(content, longest.owner_name, .right, dim, options))
 			print_space()
 		}
 
 		// group name
 		if !options.no_group_name {
-			content := if entry.invalid { unknown } else { get_group_name(entry.stat.gid) }
+			content := if entry.invalid { unknown } else { entry.group }
 			print(format_cell(content, longest.group_name, .right, dim, options))
 			print_space()
 		}
@@ -392,7 +392,8 @@ fn statistics(entries []Entry, len int, options Options) {
 
 	if link_count > 0 {
 		link_count_styled := style_string(link_count.str(), options.style_ln, options)
-		links := style_string('links', dim, options)
+		label := if link_count == 1 { 'link' } else { 'links' }
+		links := style_string(label, dim, options)
 		stats += ' | ${link_count_styled} ${links}'
 	}
 	println(stats)
@@ -467,13 +468,13 @@ fn longest_nlink_len(entries []Entry, title string, options Options) int {
 }
 
 fn longest_owner_name_len(entries []Entry, title string, options Options) int {
-	lengths := entries.map(real_length(get_owner_name(it.stat.uid)))
+	lengths := entries.map(real_length(it.owner))
 	max := arrays.max(lengths) or { 0 }
 	return if options.no_owner_name || !options.header { max } else { max(max, title.len) }
 }
 
 fn longest_group_name_len(entries []Entry, title string, options Options) int {
-	lengths := entries.map(real_length(get_group_name(it.stat.gid)))
+	lengths := entries.map(real_length(it.group))
 	max := arrays.max(lengths) or { 0 }
 	return if options.no_group_name || !options.header { max } else { max(max, real_length(title)) }
 }
