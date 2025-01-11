@@ -468,5 +468,5 @@ const other_icons_map = {
 	'device':     '\uf0a0'
 	'socket':     '\uf1e6'
 	'pipe':       '\ufce3'
-	'exe':        '\uef0c'
+	'exe':        '\uf085'
 }
