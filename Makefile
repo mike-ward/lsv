@@ -2,7 +2,7 @@
 
 all:
 	-mkdir bin
-	v -prod lsv -o bin/lsv
+	v -prod -gc none lsv -o bin/lsv
 
 native:
 	-mkdir bin
