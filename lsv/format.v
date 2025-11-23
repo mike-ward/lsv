@@ -1,7 +1,6 @@
 import arrays
 import os
 import term
-import v.mathutil
 
 const cell_max = 12 // limit on wide displays
 const cell_spacing = 3 // space between cells
@@ -28,23 +27,21 @@ fn print_files(entries_arg []Entry, options Options) {
 	width := if options_width_ok { options.width_in_cols } else { w }
 
 	match true {
-		// vfmt off
-		options.long_format   { format_long_listing(entries, options) }
+		options.long_format { format_long_listing(entries, options) }
 		options.list_by_lines { format_by_lines(entries, width, options) }
-		options.with_commas   { format_with_commas(entries, options) }
-		options.one_per_line  { format_one_per_line(entries, options) }
-		else                  { format_by_cells(entries, width, options) }
-		// vfmt on
+		options.with_commas { format_with_commas(entries, options) }
+		options.one_per_line { format_one_per_line(entries, options) }
+		else { format_by_cells(entries, width, options) }
 	}
 }
 
 fn format_by_cells(entries []Entry, width int, options Options) {
 	len := entries.max_name_len(options) + cell_spacing
-	cols := mathutil.min(width / len, cell_max)
-	max_cols := mathutil.max(cols, 1)
+	cols := int_min(width / len, cell_max)
+	max_cols := int_max(cols, 1)
 	partial_row := entries.len % max_cols != 0
 	rows := entries.len / max_cols + if partial_row { 1 } else { 0 }
-	max_rows := mathutil.max(1, rows)
+	max_rows := int_max(1, rows)
 
 	for r := 0; r < max_rows; r += 1 {
 		for c := 0; c < max_cols; c += 1 {
@@ -62,8 +59,8 @@ fn format_by_cells(entries []Entry, width int, options Options) {
 
 fn format_by_lines(entries []Entry, width int, options Options) {
 	len := entries.max_name_len(options) + cell_spacing
-	cols := mathutil.min(width / len, cell_max)
-	max_cols := mathutil.max(cols, 1)
+	cols := int_min(width / len, cell_max)
+	max_cols := int_max(cols, 1)
 
 	for i, entry in entries {
 		if i % max_cols == 0 && i != 0 {
@@ -139,17 +136,15 @@ fn (entries []Entry) max_name_len(options Options) int {
 
 fn get_style_for(entry Entry, options Options) Style {
 	return match true {
-		// vfmt off
-		entry.link      { options.style_ln }
-		entry.dir       { options.style_di }
-		entry.exe       { options.style_ex }
-		entry.fifo      { options.style_pi }
-		entry.block     { options.style_bd }
+		entry.link { options.style_ln }
+		entry.dir { options.style_di }
+		entry.exe { options.style_ex }
+		entry.fifo { options.style_pi }
+		entry.block { options.style_bd }
 		entry.character { options.style_cd }
-		entry.socket    { options.style_so }
-		entry.file      { options.style_fi }
-		else            { no_style }
-		// vfmt on
+		entry.socket { options.style_so }
+		entry.file { options.style_fi }
+		else { no_style }
 	}
 }
 
@@ -170,17 +165,15 @@ fn get_style_for_link(entry Entry, options Options) Style {
 		&& !is_exe
 
 	return match true {
-		// vfmt off
-		is_dir              { options.style_di }
-		is_exe              { options.style_ex }
-		is_fifo             { options.style_pi }
-		is_block            { options.style_bd }
+		is_dir { options.style_di }
+		is_exe { options.style_ex }
+		is_fifo { options.style_pi }
+		is_block { options.style_bd }
 		is_character_device { options.style_cd }
-		is_socket           { options.style_so }
-		is_unknown          { unknown_style }
-		is_file             { options.style_fi }
-		else                { no_style }
-		// vfmt on
+		is_socket { options.style_so }
+		is_unknown { unknown_style }
+		is_file { options.style_fi }
+		else { no_style }
 	}
 }
 

@@ -11,22 +11,18 @@ fn sort(entries []Entry, options Options) []Entry {
 		options.sort_size {
 			fn [options] (a &Entry, b &Entry) int {
 				return match true {
-					// vfmt off
 					a.size < b.size { 1 }
 					a.size > b.size { -1 }
-					else            { string_compare(a.name, b.name, options.sort_ignore_case) }
-					// vfmt on
+					else { string_compare(a.name, b.name, options.sort_ignore_case) }
 				}
 			}
 		}
 		options.sort_time {
 			fn [options] (a &Entry, b &Entry) int {
 				return match true {
-					// vfmt off
 					a.stat.mtime < b.stat.mtime { 1 }
 					a.stat.mtime > b.stat.mtime { -1 }
-					else                        { string_compare(a.name, b.name, options.sort_ignore_case) }
-					// vfmt on
+					else { string_compare(a.name, b.name, options.sort_ignore_case) }
 				}
 			}
 		}

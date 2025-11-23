@@ -113,10 +113,29 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 }
 
 fn num_with_commas(num u64) string {
-	if num < 1000 {
-		return num.str()
+	if num == 0 {
+		return '0'
 	}
-	return num_with_commas(num / 1000) + ',${(num % 1000):03u}'
+
+	mut n := num
+	mut buf := []u8{}
+	mut digit_count := 0
+
+	for n > 0 {
+		if digit_count > 0 && digit_count % 3 == 0 {
+			buf << `,`
+		}
+		buf << byte(`0` + n % 10)
+		n /= 10
+		digit_count++
+	}
+
+	// Reverse the buffer to get the correct order
+	for i, j := 0, buf.len - 1; i < j; i++, j-- {
+		buf[i], buf[j] = buf[j], buf[i]
+	}
+
+	return buf.bytestr()
 }
 
 fn readable_size(size u64, si bool) string {
@@ -129,11 +148,9 @@ fn readable_size(size u64, si bool) string {
 				else { math.round_sig(sz + .049999, 1).str() }
 			}
 			bytes := match true {
-				// vfmt off
 				unit == '' { '' }
-				si 	   { '' }
-				else 	   { 'b' }
-				// vfmt on
+				si { '' }
+				else { 'b' }
 			}
 			return '${readable}${unit}${bytes}'
 		}
@@ -150,15 +167,13 @@ fn checksum(name string, dir_name string, options Options) string {
 	bytes := os.read_bytes(file) or { return unknown }
 
 	return match options.checksum {
-		// vfmt off
-		'md5'     { md5.sum(bytes).hex() }
-		'sha1'    { sha1.sum(bytes).hex() }
-		'sha224'  { sha256.sum224(bytes).hex() }
-		'sha256'  { sha256.sum256(bytes).hex() }
-		'sha512'  { sha512.sum512(bytes).hex() }
+		'md5' { md5.sum(bytes).hex() }
+		'sha1' { sha1.sum(bytes).hex() }
+		'sha224' { sha256.sum224(bytes).hex() }
+		'sha256' { sha256.sum256(bytes).hex() }
+		'sha512' { sha512.sum512(bytes).hex() }
 		'blake2b' { blake2b.sum256(bytes).hex() }
-		else      { unknown }
-		// vfmt on
+		else { unknown }
 	}
 }
 

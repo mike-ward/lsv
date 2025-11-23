@@ -1,10 +1,8 @@
-import v.mathutil
-
 // compares strings with embedded numbers (e.g. log17.txt)
 fn natural_compare(a &string, b &string, ignore_case bool) int {
 	pa := split(a)
 	pb := split(b)
-	max := mathutil.min(pa.len, pb.len)
+	max := int_min(pa.len, pb.len)
 
 	for i := 0; i < max; i++ {
 		if pa[i].is_int() && pb[i].is_int() {

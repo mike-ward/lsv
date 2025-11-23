@@ -1,2 +1,27 @@
 */lsv
-bin
+# Binaries for programs and plugins
+main
+zilch
+*.exe
+*.exe~
+*.so
+*.dylib
+*.dll
+*.dSYM
+*.gz
+
+# Ignore binary output folders
+bin/
+
+# Ignore common editor/system specific metadata
+.DS_Store
+.idea/
+.vscode/
+*.iml
+
+# ENV
+.env
+
+# vweb and database
+*.db
+*.js
