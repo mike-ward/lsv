@@ -97,7 +97,7 @@ fn format_cell(s string, width int, align Align, style Style, options Options) s
 
 fn format_cell_content(s string, width int, align Align, style Style, options Options) string {
 	mut cell := ''
-	pad := width - real_length(s)
+	pad := width - visible_length(s)
 
 	if align == .right && pad > 0 {
 		cell += space.repeat(pad)
@@ -130,7 +130,7 @@ fn print_dir_name(name string, options Options) {
 }
 
 fn (entries []Entry) max_name_len(options Options) int {
-	lengths := entries.map(real_length(format_entry_name(it, options)))
+	lengths := entries.map(visible_length(format_entry_name(it, options)))
 	return arrays.max(lengths) or { 0 }
 }
 
@@ -201,8 +201,8 @@ fn format_entry_name(entry Entry, options Options) string {
 	}
 }
 
-fn real_length(s string) int {
-	return s.runes().len
+fn visible_length(s string) int {
+	return utf8_str_visible_length(s)
 }
 
 @[inline]
