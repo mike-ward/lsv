@@ -45,8 +45,8 @@ enum StatTime {
 	modified
 }
 
-fn format_long_listing(entries []Entry, options Options) {
-	longest := longest_entries(entries, options)
+fn format_long_listing(mut entries []Entry, options Options) {
+	longest := longest_entries(mut entries, options)
 	header, cols := format_header(options, longest)
 	header_len := visible_length(header)
 	term_cols, _ := term.get_terminal_size()
@@ -163,7 +163,7 @@ fn format_long_listing(entries []Entry, options Options) {
 
 		// date/time(modified)
 		if !options.no_date {
-			ftime := format_time(entry, .modified, options)
+			ftime := entry.fmt_mtime // format_time(entry, .modified, options)
 			fcell := format_cell(ftime, longest.mtime, .right, time_style, options)
 			print(fcell)
 			print_space()
@@ -218,10 +218,10 @@ fn format_long_listing(entries []Entry, options Options) {
 	}
 }
 
-fn longest_entries(entries []Entry, options Options) Longest {
+fn longest_entries(mut entries []Entry, options Options) Longest {
 	return Longest{
 		atime:      if options.accessed_date {
-			longest_time(entries, .accessed, date_accessed_title, options)
+			longest_time(mut entries, .accessed, date_accessed_title, options)
 		} else {
 			0
 		}
@@ -231,7 +231,7 @@ fn longest_entries(entries []Entry, options Options) Longest {
 			0
 		}
 		ctime:      if options.changed_date {
-			longest_time(entries, .changed, date_status_title, options)
+			longest_time(mut entries, .changed, date_status_title, options)
 		} else {
 			0
 		}
@@ -249,7 +249,7 @@ fn longest_entries(entries []Entry, options Options) Longest {
 			0
 		}
 		mtime:      if !options.no_date {
-			longest_time(entries, .modified, date_modified_title, options)
+			longest_time(mut entries, .modified, date_modified_title, options)
 		} else {
 			0
 		}
@@ -534,15 +534,20 @@ fn longest_checksum_len(entries []Entry, title string, options Options) int {
 	return if !options.header { max } else { int_max(max, visible_length(title)) }
 }
 
-fn longest_time(entries []Entry, stat_time StatTime, title string, options Options) int {
-	mut max := 0
-	for entry in entries {
-		max = visible_length(format_time(entry, stat_time, options))
-		if max > 3 {
-			break
+fn longest_time(mut entries []Entry, stat_time StatTime, title string, options Options) int {
+	mut max_len := 0
+	for mut entry in entries {
+		str := format_time(entry, stat_time, options)
+		match stat_time {
+			.accessed { entry.fmt_atime = str }
+			.changed { entry.fmt_ctime = str }
+			.modified { entry.fmt_mtime = str }
+		}
+		if str.len > max_len {
+			max_len = str.len
 		}
 	}
-	return if options.header { int_max(visible_length(title), max) } else { max }
+	return if options.header { int_max(visible_length(title), max_len) } else { max_len }
 }
 
 fn longest_mime_type(entries []Entry, title string, options Options) int {

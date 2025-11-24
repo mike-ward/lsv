@@ -31,6 +31,11 @@ struct Entry {
 	owner       string
 	group       string
 	invalid     bool // lstat could not access
+mut:
+	// cache formatted times here.
+	fmt_atime string
+	fmt_ctime string
+	fmt_mtime string
 }
 
 fn get_entries(files []string, options Options) []Entry {

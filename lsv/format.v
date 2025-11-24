@@ -11,14 +11,14 @@ enum Align {
 }
 
 fn print_files(entries_arg []Entry, options Options) {
-	entries := match true {
+	mut entries := match true {
 		options.all && !options.almost_all {
 			dot := make_entry('.', '.', options)
 			dot_dot := make_entry('..', '.', options)
 			arrays.concat([dot, dot_dot], ...entries_arg)
 		}
 		else {
-			entries_arg
+			unsafe { entries_arg }
 		}
 	}
 
@@ -27,7 +27,7 @@ fn print_files(entries_arg []Entry, options Options) {
 	width := if options_width_ok { options.width_in_cols } else { w }
 
 	match true {
-		options.long_format { format_long_listing(entries, options) }
+		options.long_format { format_long_listing(mut entries, options) }
 		options.list_by_lines { format_by_lines(entries, width, options) }
 		options.with_commas { format_with_commas(entries, options) }
 		options.one_per_line { format_one_per_line(entries, options) }
