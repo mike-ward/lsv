@@ -10,15 +10,15 @@ enum Align {
 	right
 }
 
-fn print_files(entries_arg []Entry, options Options) {
+fn print_files(mut entries_arg []Entry, options Options) {
 	mut entries := match true {
 		options.all && !options.almost_all {
 			dot := make_entry('.', '.', options)
 			dot_dot := make_entry('..', '.', options)
-			arrays.concat([dot, dot_dot], ...entries_arg)
+			arrays.append([dot, dot_dot], entries_arg)
 		}
 		else {
-			unsafe { entries_arg }
+			*entries_arg
 		}
 	}
 

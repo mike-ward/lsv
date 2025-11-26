@@ -19,11 +19,11 @@ fn lsv(entries []Entry, options Options, mut cyclic Set[string]) {
 	for dir in sorted_dirs {
 		files := group_by_dirs[dir]
 		filtered := filter(files, options)
-		sorted := sort(filtered, options)
+		mut sorted := sort(filtered, options)
 		if group_by_dirs.len > 1 || options.recursive {
 			print_dir_name(dir, options)
 		}
-		print_files(sorted, options)
+		print_files(mut sorted, options)
 
 		if options.recursive {
 			for entry in sorted {
