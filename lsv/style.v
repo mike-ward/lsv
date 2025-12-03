@@ -20,12 +20,12 @@ const dim_style = Style{
 }
 
 const di_style = Style{
-	bold: true
-	fg:   fgf('36') // cyan
+	fg: fgf('34') // cyan
 }
 
 const fi_style = Style{
-	fg: fgf('32') // green
+	dim: true
+	fg:  fgf('32') // green
 }
 
 const ln_style = Style{
@@ -34,12 +34,11 @@ const ln_style = Style{
 }
 
 const ex_style = Style{
-	bold: true
-	fg:   fgf('31') // red
+	fg: fgf('31') // red
 }
 
 const so_style = Style{
-	fg: fgf('32') // green
+	fg: fgf('36') // blue
 }
 
 const pi_style = Style{
@@ -102,12 +101,14 @@ fn make_style_map() map[string]Style {
 			style_map[id] = style
 		}
 	}
+
 	return style_map
 }
 
 fn make_style(ansi string) Style {
 	mut bold := false
 	mut ul := false
+	mut dim := false
 	mut fg := no_color
 	mut bg := no_color
 
@@ -117,6 +118,7 @@ fn make_style(ansi string) Style {
 		match code {
 			'0' { bold = false }
 			'1' { bold = true }
+			'2' { dim = true }
 			'4' { ul = true }
 			'31' { fg = fgf(code) }
 			'32' { fg = fgf(code) }
@@ -156,6 +158,7 @@ fn make_style(ansi string) Style {
 		bg:   bg
 		bold: bold
 		ul:   ul
+		dim:  dim
 	}
 }
 

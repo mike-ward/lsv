@@ -56,7 +56,7 @@ fn format_long_listing(mut entries []Entry, options Options) {
 
 	dim := if options.no_dim { no_style } else { dim_style }
 	time_style := Style{
-		...options.style_di
+		...options.style_so
 		dim: !options.no_dim
 	}
 
