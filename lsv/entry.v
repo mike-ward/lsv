@@ -1,10 +1,4 @@
 import os
-import crypto.md5
-import crypto.sha1
-import crypto.sha256
-import crypto.sha512
-import crypto.blake2b
-import net.http.mime
 import math
 
 struct Entry {
@@ -23,20 +17,11 @@ struct Entry {
 	unknown     bool
 	link_origin string
 	size        u64
-	checksum    string
-	mime_type   string
-	owner       string
-	group       string
 	invalid     bool // lstat could not access
-mut:
-	// cache formatted times here.
-	fmt_atime string
-	fmt_ctime string
-	fmt_mtime string
 }
 
-fn get_entries(files []string, options Options) []Entry {
-	mut entries := []Entry{cap: 50}
+fn get_entries(files []string, options Options) []&Entry {
+	mut entries := []&Entry{cap: 50}
 
 	for file in files {
 		if os.is_dir(file) {
@@ -54,7 +39,7 @@ fn get_entries(files []string, options Options) []Entry {
 	return entries
 }
 
-fn make_entry(file string, dir_name string, options Options) Entry {
+fn make_entry(file string, dir_name string, options Options) &Entry {
 	mut invalid := false
 	path := if dir_name == '' { file } else { os.join_path(dir_name, file) }
 
@@ -87,7 +72,7 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 	indicator := if is_dir && options.dir_indicator { '/' } else { '' }
 	name := if options.full_path { os.real_path(path) + indicator } else { file + indicator }
 
-	return Entry{
+	return &Entry{
 		name:        name
 		dir_name:    dir_name
 		stat:        stat
@@ -102,26 +87,13 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 		character:   is_character_device
 		unknown:     is_unknown
 		link_origin: link_origin
+
 		size:        size
-		checksum:    if is_file && options.checksum != '' {
-			checksum(file, dir_name, options)
-		} else {
-			''
-		}
-		mime_type:   if options.mime_type { get_mime_type(file, link_origin, is_exe) } else { '' }
-		owner:       if options.long_format && !options.no_owner_name {
-			if options.numeric_ids { stat.uid.str() } else { get_owner_name(stat.uid) }
-		} else {
-			''
-		}
-		group:       if options.long_format && !options.no_group_name {
-			if options.numeric_ids { stat.gid.str() } else { get_group_name(stat.gid) }
-		} else {
-			''
-		}
 		invalid:     invalid
 	}
-}
+
+	}
+
 
 fn num_with_commas(num u64) string {
 	if num == 0 {
@@ -170,116 +142,7 @@ fn readable_size(size u64, si bool) string {
 	return size.str()
 }
 
-fn checksum(name string, dir_name string, options Options) string {
-	if options.checksum == '' {
-		return ''
-	}
-	file_path := os.join_path(dir_name, name)
-	mut f := os.open(file_path) or { return unknown }
-	defer { f.close() }
 
-	mut buf := []u8{len: 64 * 1024}
-
-	match options.checksum {
-		'md5' {
-			mut digest := md5.new()
-			for {
-				n := f.read(mut buf) or { break }
-				if n == 0 {
-					break
-				}
-				digest.write(buf[..n]) or { return unknown }
-			}
-			return digest.sum([]).hex()
-		}
-		'sha1' {
-			mut digest := sha1.new()
-			for {
-				n := f.read(mut buf) or { break }
-				if n == 0 {
-					break
-				}
-				digest.write(buf[..n]) or { return unknown }
-			}
-			return digest.sum([]).hex()
-		}
-		'sha224' {
-			f.close()
-			bytes := os.read_bytes(file_path) or { return unknown }
-			return sha256.sum224(bytes).hex()
-		}
-		'sha256' {
-			mut digest := sha256.new()
-			for {
-				n := f.read(mut buf) or { break }
-				if n == 0 {
-					break
-				}
-				digest.write(buf[..n]) or { return unknown }
-			}
-			return digest.sum([]).hex()
-		}
-		'sha512' {
-			mut digest := sha512.new()
-			for {
-				n := f.read(mut buf) or { break }
-				if n == 0 {
-					break
-				}
-				digest.write(buf[..n]) or { return unknown }
-			}
-			return digest.sum([]).hex()
-		}
-		'blake2b' {
-			// Blake2b in V might operate differently as seen in test failure (no sum()).
-			// It has `checksum()`.
-			mut digest := blake2b.new256() or { return unknown }
-			for {
-				n := f.read(mut buf) or { break }
-				if n == 0 {
-					break
-				}
-				digest.write(buf[..n]) or { return unknown }
-			}
-			return digest.checksum().hex()
-		}
-		else {
-			return unknown
-		}
-	}
-}
-
-const text_plain_names = [
-	'CARGO.LOCK',
-	'CMAKE',
-	'CNAME',
-	'DOCKERFILE',
-	'GEMFILE',
-	'GEMFILE.LOCK',
-	'GNUMAKEFILE',
-	'LICENSE',
-	'MAKEFILE',
-	'TEXT',
-	'V.MOD',
-]
-
-fn get_mime_type(file string, link_origin string, is_exe bool) string {
-	if link_origin.len > 0 {
-		return mime.get_mime_type(os.file_ext(link_origin).trim_left('.'))
-	}
-	ext := os.file_ext(file).trim_left('.')
-	mt := mime.get_mime_type(ext)
-	if mt.len > 0 {
-		return mt
-	}
-	if is_exe {
-		return 'application/octet-stream'
-	}
-	if file.to_upper() in text_plain_names || ext.to_upper() in text_plain_names {
-		return 'text/plain'
-	}
-	return ''
-}
 
 @[inline]
 fn is_executable(stat os.Stat) bool {

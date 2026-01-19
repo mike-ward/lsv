@@ -18,7 +18,7 @@ struct FormattedEntry {
 	style          Style
 }
 
-fn print_files(mut entries_arg []Entry, options Options) {
+fn print_files(mut entries_arg []&Entry, options Options) {
 	mut entries := match true {
 		options.all && !options.almost_all {
 			dot := make_entry('.', '.', options)
@@ -53,10 +53,10 @@ fn print_files(mut entries_arg []Entry, options Options) {
 	}
 }
 
-fn prepare_formatted_entries(entries []Entry, options Options) []FormattedEntry {
+fn prepare_formatted_entries(entries []&Entry, options Options) []FormattedEntry {
 	mut formatted := []FormattedEntry{cap: entries.len}
 	for i in 0 .. entries.len {
-		entry := &entries[i]
+		entry := entries[i]
 		name := format_entry_name(entry, options)
 		formatted << FormattedEntry{
 			entry:          entry
@@ -229,7 +229,7 @@ fn get_style_for(entry &Entry, options Options) Style {
 	}
 }
 
-fn get_style_for_link(entry Entry, options Options) Style {
+fn get_style_for_link(entry &Entry, options Options) Style {
 	if entry.link_stat.size == 0 {
 		return unknown_style
 	}

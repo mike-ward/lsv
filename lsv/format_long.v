@@ -2,6 +2,12 @@ import arrays
 import os
 import term
 import time
+import crypto.md5
+import crypto.sha1
+import crypto.sha256
+import crypto.sha512
+import crypto.blake2b
+import net.http.mime
 
 const block_size = 5
 const date_accessed_title = 'Accessed'
@@ -39,14 +45,25 @@ struct Longest {
 	size       int
 }
 
+struct DisplayCache {
+mut:
+	checksum   string
+	mime_type  string
+	owner      string
+	group      string
+	fmt_atime  string
+	fmt_ctime  string
+	fmt_mtime  string
+}
+
 enum StatTime {
 	accessed
 	changed
 	modified
 }
 
-fn format_long_listing(mut entries []Entry, options Options) {
-	longest := longest_entries(mut entries, options)
+fn format_long_listing(mut entries []&Entry, options Options) {
+	longest, cache := longest_entries(mut entries, options)
 	header, cols := format_header(options, longest)
 	header_len := visible_length(header)
 	term_cols, _ := term.get_terminal_size()
@@ -61,6 +78,7 @@ fn format_long_listing(mut entries []Entry, options Options) {
 	}
 
 	for idx, entry in entries {
+		c_entry := cache[idx]
 		// emit blank row every 5th row
 		if options.blocked_output {
 			if idx % block_size == 0 && idx != 0 {
@@ -84,7 +102,7 @@ fn format_long_listing(mut entries []Entry, options Options) {
 
 		// mime type
 		if options.mime_type {
-			print(format_cell(entry.mime_type, longest.mime_type, .right, no_style, options))
+			print(format_cell(c_entry.mime_type, longest.mime_type, .right, no_style, options))
 			print_space()
 		}
 
@@ -97,18 +115,18 @@ fn format_long_listing(mut entries []Entry, options Options) {
 
 		// checksum
 		if options.checksum != '' {
-			checksum := format_cell(entry.checksum, longest.checksum, .left, dim, options)
+			checksum := format_cell(c_entry.checksum, longest.checksum, .left, dim, options)
 			print(checksum)
 			print_space()
 		}
 
 		// permissions
 		if !options.no_permissions {
-			flag := file_flag(&entry, options)
+			flag := file_flag(entry, options)
 			print(format_cell(flag, 1, .left, no_style, options))
 			print_space()
 
-			content := permissions(&entry, options)
+			content := permissions(entry, options)
 			print(format_cell(content, visible_length(permissions_title), .right, no_style,
 				options))
 			print_space()
@@ -116,7 +134,7 @@ fn format_long_listing(mut entries []Entry, options Options) {
 
 		// octal permissions
 		if options.octal_permissions {
-			content := format_octal_permissions(&entry, options)
+			content := format_octal_permissions(entry, options)
 			print(format_cell(content, 4, .left, dim, options))
 			print_space()
 		}
@@ -130,14 +148,14 @@ fn format_long_listing(mut entries []Entry, options Options) {
 
 		// owner name
 		if !options.no_owner_name {
-			content := if entry.invalid { unknown } else { entry.owner }
+			content := if entry.invalid { unknown } else { c_entry.owner }
 			print(format_cell(content, longest.owner_name, .right, dim, options))
 			print_space()
 		}
 
 		// group name
 		if !options.no_group_name {
-			content := if entry.invalid { unknown } else { entry.group }
+			content := if entry.invalid { unknown } else { c_entry.group }
 			print(format_cell(content, longest.group_name, .right, dim, options))
 			print_space()
 		}
@@ -154,7 +172,7 @@ fn format_long_listing(mut entries []Entry, options Options) {
 			}
 			size_style := match entry.link_stat.size > 0 {
 				true { get_style_for_link(entry, options) }
-				else { get_style_for(&entry, options) }
+				else { get_style_for(entry, options) }
 			}
 			size := format_cell(content, longest.size, .right, size_style, options)
 			print(size)
@@ -163,7 +181,7 @@ fn format_long_listing(mut entries []Entry, options Options) {
 
 		// date/time(modified)
 		if !options.no_date {
-			ftime := entry.fmt_mtime // format_time(&entry, .modified, options)
+			ftime := c_entry.fmt_mtime // format_time(&entry, .modified, options)
 			fcell := format_cell(ftime, longest.mtime, .right, time_style, options)
 			print(fcell)
 			print_space()
@@ -171,7 +189,7 @@ fn format_long_listing(mut entries []Entry, options Options) {
 
 		// date/time (accessed)
 		if options.accessed_date {
-			ftime := format_time(&entry, .modified, options)
+			ftime := c_entry.fmt_atime // format_time(&entry, .modified, options)
 			fcell := format_cell(ftime, longest.atime, .right, time_style, options)
 			print(fcell)
 			print_space()
@@ -179,15 +197,15 @@ fn format_long_listing(mut entries []Entry, options Options) {
 
 		// date/time (status change)
 		if options.changed_date {
-			ftime := format_time(&entry, .modified, options)
+			ftime := c_entry.fmt_ctime // format_time(&entry, .modified, options)
 			fcell := format_cell(ftime, longest.ctime, .right, time_style, options)
 			print(fcell)
 			print_space()
 		}
 
 		// file name
-		file_name := format_entry_name(&entry, options)
-		file_style := get_style_for(&entry, options)
+		file_name := format_entry_name(entry, options)
+		file_style := get_style_for(entry, options)
 		match options.table_format {
 			true { print(format_cell(file_name, longest.file, .left, file_style, options)) }
 			else { print(format_cell(file_name, 0, .left, file_style, options)) }
@@ -218,7 +236,7 @@ fn format_long_listing(mut entries []Entry, options Options) {
 	}
 }
 
-fn longest_entries(mut entries []Entry, options Options) Longest {
+fn longest_entries(mut entries []&Entry, options Options) (Longest, []DisplayCache) {
 	mut max_atime := 0
 	mut max_checksum := 0
 	mut max_ctime := 0
@@ -231,31 +249,42 @@ fn longest_entries(mut entries []Entry, options Options) Longest {
 	mut max_nlink := 0
 	mut max_owner_name := 0
 	mut max_size := 0
+	mut cache := []DisplayCache{cap: entries.len}
 
 	for mut entry in entries {
+		mut d_cache := DisplayCache{}
+
 		// Calculate time formatting once and cache it in the entry
 		if !options.no_date {
-			entry.fmt_mtime = format_time(&entry, .modified, options)
-			max_mtime = int_max(max_mtime, entry.fmt_mtime.len)
+			d_cache.fmt_mtime = format_time(entry, .modified, options)
+			max_mtime = int_max(max_mtime, d_cache.fmt_mtime.len)
 		}
 		if options.accessed_date {
-			entry.fmt_atime = format_time(&entry, .accessed, options)
-			max_atime = int_max(max_atime, entry.fmt_atime.len)
+			d_cache.fmt_atime = format_time(entry, .accessed, options)
+			max_atime = int_max(max_atime, d_cache.fmt_atime.len)
 		}
 		if options.changed_date {
-			entry.fmt_ctime = format_time(&entry, .changed, options)
-			max_ctime = int_max(max_ctime, entry.fmt_ctime.len)
+			d_cache.fmt_ctime = format_time(entry, .changed, options)
+			max_ctime = int_max(max_ctime, d_cache.fmt_ctime.len)
 		}
 
 		// Calculate other lengths
 		if options.checksum.len > 0 {
-			max_checksum = int_max(max_checksum, entry.checksum.len)
+			if entry.file {
+				d_cache.checksum = checksum(entry.name, entry.dir_name, options)
+			}
+			max_checksum = int_max(max_checksum, d_cache.checksum.len)
 		}
 
-		max_file = int_max(max_file, visible_length(format_entry_name(&entry, options)))
+		max_file = int_max(max_file, visible_length(format_entry_name(entry, options)))
 
 		if !options.no_group_name {
-			max_group_name = int_max(max_group_name, visible_length(entry.group))
+			if options.numeric_ids {
+				d_cache.group = entry.stat.gid.str()
+			} else {
+				d_cache.group = get_group_name(entry.stat.gid)
+			}
+			max_group_name = int_max(max_group_name, visible_length(d_cache.group))
 		}
 
 		if options.index {
@@ -268,7 +297,8 @@ fn longest_entries(mut entries []Entry, options Options) Longest {
 		}
 
 		if options.mime_type {
-			max_mime_type = int_max(max_mime_type, entry.mime_type.len)
+			d_cache.mime_type = get_mime_type(entry.name, entry.link_origin, entry.exe)
+			max_mime_type = int_max(max_mime_type, d_cache.mime_type.len)
 		}
 
 		if !options.no_hard_links {
@@ -276,7 +306,12 @@ fn longest_entries(mut entries []Entry, options Options) Longest {
 		}
 
 		if !options.no_owner_name {
-			max_owner_name = int_max(max_owner_name, visible_length(entry.owner))
+			if options.numeric_ids {
+				d_cache.owner = entry.stat.uid.str()
+			} else {
+				d_cache.owner = get_owner_name(entry.stat.uid)
+			}
+			max_owner_name = int_max(max_owner_name, visible_length(d_cache.owner))
 		}
 
 		if !options.no_size {
@@ -289,6 +324,7 @@ fn longest_entries(mut entries []Entry, options Options) Longest {
 			}
 			max_size = int_max(max_size, size_len)
 		}
+		cache << d_cache
 	}
 
 	// Adjust for headers if necessary
@@ -307,7 +343,7 @@ fn longest_entries(mut entries []Entry, options Options) Longest {
 		max_size = int_max(max_size, visible_length(size_title))
 	}
 
-	return Longest{
+	longest := Longest{
 		atime:      max_atime
 		checksum:   max_checksum
 		ctime:      max_ctime
@@ -321,6 +357,7 @@ fn longest_entries(mut entries []Entry, options Options) Longest {
 		owner_name: max_owner_name
 		size:       max_size
 	}
+	return longest, cache
 }
 
 fn print_header(header string, options Options, len int, cols []int) {
@@ -437,7 +474,7 @@ fn right_pad_end(s string, width int) string {
 	return if pad > 0 { s + space.repeat(pad) } else { s }
 }
 
-fn statistics(entries []Entry, len int, options Options) {
+fn statistics(entries []&Entry, len int, options Options) {
 	file_count := entries.filter(it.file).len
 	total := arrays.sum(entries.map(if it.file || it.exe { it.stat.size } else { 0 })) or { 0 }
 	dir_count := entries.filter(it.dir).len
@@ -536,4 +573,114 @@ fn format_time(entry &Entry, stat_time StatTime, options Options) string {
 
 	content := if entry.invalid { '?' + space.repeat(visible_length(date) - 1) } else { date }
 	return content
+}
+fn checksum(name string, dir_name string, options Options) string {
+	if options.checksum == '' {
+		return ''
+	}
+	file_path := os.join_path(dir_name, name)
+	mut f := os.open(file_path) or { return unknown }
+	defer { f.close() }
+
+	mut buf := []u8{len: 64 * 1024}
+
+	match options.checksum {
+		'md5' {
+			mut digest := md5.new()
+			for {
+				n := f.read(mut buf) or { break }
+				if n == 0 {
+					break
+				}
+				digest.write(buf[..n]) or { return unknown }
+			}
+			return digest.sum([]).hex()
+		}
+		'sha1' {
+			mut digest := sha1.new()
+			for {
+				n := f.read(mut buf) or { break }
+				if n == 0 {
+					break
+				}
+				digest.write(buf[..n]) or { return unknown }
+			}
+			return digest.sum([]).hex()
+		}
+		'sha224' {
+			f.close()
+			bytes := os.read_bytes(file_path) or { return unknown }
+			return sha256.sum224(bytes).hex()
+		}
+		'sha256' {
+			mut digest := sha256.new()
+			for {
+				n := f.read(mut buf) or { break }
+				if n == 0 {
+					break
+				}
+				digest.write(buf[..n]) or { return unknown }
+			}
+			return digest.sum([]).hex()
+		}
+		'sha512' {
+			mut digest := sha512.new()
+			for {
+				n := f.read(mut buf) or { break }
+				if n == 0 {
+					break
+				}
+				digest.write(buf[..n]) or { return unknown }
+			}
+			return digest.sum([]).hex()
+		}
+		'blake2b' {
+			// Blake2b in V might operate differently as seen in test failure (no sum()).
+			// It has `checksum()`.
+			mut digest := blake2b.new256() or { return unknown }
+			for {
+				n := f.read(mut buf) or { break }
+				if n == 0 {
+					break
+				}
+				digest.write(buf[..n]) or { return unknown }
+			}
+			return digest.checksum().hex()
+		}
+		else {
+			return unknown
+		}
+	}
+}
+
+const text_plain_names = [
+	'CARGO.LOCK',
+	'CMAKE',
+	'CNAME',
+	'DOCKERFILE',
+	'GEMFILE',
+	'GEMFILE.LOCK',
+	'GNUMAKEFILE',
+	'LICENSE',
+	'MAKEFILE',
+	'TEXT',
+	'V.MOD',
+]
+
+fn get_mime_type(file string, link_origin string, is_exe bool) string {
+	if link_origin.len > 0 {
+		return mime.get_mime_type(os.file_ext(link_origin).trim_left('.'))
+	}
+	ext := os.file_ext(file).trim_left('.')
+	mt := mime.get_mime_type(ext)
+	if mt.len > 0 {
+		return mt
+	}
+	if is_exe {
+		return 'application/octet-stream'
+	}
+	if file.to_upper() in text_plain_names || ext.to_upper() in text_plain_names {
+		return 'text/plain'
+	}
+	return ''
 }

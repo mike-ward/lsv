@@ -10,14 +10,14 @@ fn main() {
 	lsv(entries, options, mut cyclic)
 }
 
-fn lsv(entries []Entry, options Options, mut cyclic Set[string]) {
-	group_by_dirs := group_by[string, Entry](entries, fn (e Entry) string {
+fn lsv(entries []&Entry, options Options, mut cyclic Set[string]) {
+	group_by_dirs := group_by[string, &Entry](entries, fn (e &Entry) string {
 		return e.dir_name
 	})
 	sorted_dirs := group_by_dirs.keys().sorted()
 
 	for dir in sorted_dirs {
-		files := group_by_dirs[dir]
+		files := group_by_dirs[dir] or { []&Entry{} }
 		mut filtered := filter(files, options)
 		sort(mut filtered, options)
 		if group_by_dirs.len > 1 || options.recursive {

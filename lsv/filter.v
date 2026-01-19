@@ -9,7 +9,7 @@ enum ByTime {
 	after_changed
 }
 
-fn filter(entries []Entry, options Options) []Entry {
+fn filter(entries []&Entry, options Options) []&Entry {
 	mut filtered := entries.clone()
 
 	if options.only_dirs {
@@ -37,7 +37,7 @@ fn filter(entries []Entry, options Options) []Entry {
 	return filtered
 }
 
-fn filter_time(entries []Entry, time_str string, by ByTime) []Entry {
+fn filter_time(entries []&Entry, time_str string, by ByTime) []&Entry {
 	if time_str.len == 0 {
 		return entries
 	}
