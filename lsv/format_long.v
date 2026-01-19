@@ -104,11 +104,11 @@ fn format_long_listing(mut entries []Entry, options Options) {
 
 		// permissions
 		if !options.no_permissions {
-			flag := file_flag(entry, options)
+			flag := file_flag(&entry, options)
 			print(format_cell(flag, 1, .left, no_style, options))
 			print_space()
 
-			content := permissions(entry, options)
+			content := permissions(&entry, options)
 			print(format_cell(content, visible_length(permissions_title), .right, no_style,
 				options))
 			print_space()
@@ -116,7 +116,7 @@ fn format_long_listing(mut entries []Entry, options Options) {
 
 		// octal permissions
 		if options.octal_permissions {
-			content := format_octal_permissions(entry, options)
+			content := format_octal_permissions(&entry, options)
 			print(format_cell(content, 4, .left, dim, options))
 			print_space()
 		}
@@ -154,7 +154,7 @@ fn format_long_listing(mut entries []Entry, options Options) {
 			}
 			size_style := match entry.link_stat.size > 0 {
 				true { get_style_for_link(entry, options) }
-				else { get_style_for(entry, options) }
+				else { get_style_for(&entry, options) }
 			}
 			size := format_cell(content, longest.size, .right, size_style, options)
 			print(size)
@@ -163,7 +163,7 @@ fn format_long_listing(mut entries []Entry, options Options) {
 
 		// date/time(modified)
 		if !options.no_date {
-			ftime := entry.fmt_mtime // format_time(entry, .modified, options)
+			ftime := entry.fmt_mtime // format_time(&entry, .modified, options)
 			fcell := format_cell(ftime, longest.mtime, .right, time_style, options)
 			print(fcell)
 			print_space()
@@ -171,7 +171,7 @@ fn format_long_listing(mut entries []Entry, options Options) {
 
 		// date/time (accessed)
 		if options.accessed_date {
-			ftime := format_time(entry, .modified, options)
+			ftime := format_time(&entry, .modified, options)
 			fcell := format_cell(ftime, longest.atime, .right, time_style, options)
 			print(fcell)
 			print_space()
@@ -179,15 +179,15 @@ fn format_long_listing(mut entries []Entry, options Options) {
 
 		// date/time (status change)
 		if options.changed_date {
-			ftime := format_time(entry, .modified, options)
+			ftime := format_time(&entry, .modified, options)
 			fcell := format_cell(ftime, longest.ctime, .right, time_style, options)
 			print(fcell)
 			print_space()
 		}
 
 		// file name
-		file_name := format_entry_name(entry, options)
-		file_style := get_style_for(entry, options)
+		file_name := format_entry_name(&entry, options)
+		file_style := get_style_for(&entry, options)
 		match options.table_format {
 			true { print(format_cell(file_name, longest.file, .left, file_style, options)) }
 			else { print(format_cell(file_name, 0, .left, file_style, options)) }
@@ -235,15 +235,15 @@ fn longest_entries(mut entries []Entry, options Options) Longest {
 	for mut entry in entries {
 		// Calculate time formatting once and cache it in the entry
 		if !options.no_date {
-			entry.fmt_mtime = format_time(entry, .modified, options)
+			entry.fmt_mtime = format_time(&entry, .modified, options)
 			max_mtime = int_max(max_mtime, entry.fmt_mtime.len)
 		}
 		if options.accessed_date {
-			entry.fmt_atime = format_time(entry, .accessed, options)
+			entry.fmt_atime = format_time(&entry, .accessed, options)
 			max_atime = int_max(max_atime, entry.fmt_atime.len)
 		}
 		if options.changed_date {
-			entry.fmt_ctime = format_time(entry, .changed, options)
+			entry.fmt_ctime = format_time(&entry, .changed, options)
 			max_ctime = int_max(max_ctime, entry.fmt_ctime.len)
 		}
 
@@ -252,7 +252,7 @@ fn longest_entries(mut entries []Entry, options Options) Longest {
 			max_checksum = int_max(max_checksum, entry.checksum.len)
 		}
 
-		max_file = int_max(max_file, visible_length(format_entry_name(entry, options)))
+		max_file = int_max(max_file, visible_length(format_entry_name(&entry, options)))
 
 		if !options.no_group_name {
 			max_group_name = int_max(max_group_name, visible_length(entry.group))
@@ -478,7 +478,7 @@ fn statistics(entries []Entry, len int, options Options) {
 	println(stats)
 }
 
-fn file_flag(entry Entry, options Options) string {
+fn file_flag(entry &Entry, options Options) string {
 	return match true {
 		entry.invalid { unknown }
 		entry.link { style_string('l', options.style_ln, options) }
@@ -493,12 +493,12 @@ fn file_flag(entry Entry, options Options) string {
 	}
 }
 
-fn format_octal_permissions(entry Entry, options Options) string {
+fn format_octal_permissions(entry &Entry, options Options) string {
 	mode := entry.stat.get_mode()
 	return '0${mode.owner.bitmask()}${mode.group.bitmask()}${mode.others.bitmask()}'
 }
 
-fn permissions(entry Entry, options Options) string {
+fn permissions(entry &Entry, options Options) string {
 	mode := entry.stat.get_mode()
 	owner := file_permission(mode.owner, options)
 	group := file_permission(mode.group, options)
@@ -515,7 +515,7 @@ fn file_permission(file_permission os.FilePermission, options Options) string {
 	return '${r}${w}${x}'
 }
 
-fn format_time(entry Entry, stat_time StatTime, options Options) string {
+fn format_time(entry &Entry, stat_time StatTime, options Options) string {
 	entry_time := match stat_time {
 		.accessed { entry.stat.atime }
 		.changed { entry.stat.ctime }

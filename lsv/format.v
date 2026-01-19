@@ -1,5 +1,6 @@
 import arrays
 import os
+import strings
 import term
 
 const cell_max = 12 // limit on wide displays
@@ -8,6 +9,13 @@ const cell_spacing = 3 // space between cells
 enum Align {
 	left
 	right
+}
+
+struct FormattedEntry {
+	entry          &Entry
+	formatted_name string
+	visible_len    int
+	style          Style
 }
 
 fn print_files(mut entries_arg []Entry, options Options) {
@@ -26,99 +34,172 @@ fn print_files(mut entries_arg []Entry, options Options) {
 	options_width_ok := options.width_in_cols > 0 && options.width_in_cols < 1000
 	width := if options_width_ok { options.width_in_cols } else { w }
 
+	// Phase 4 Optimization: Pre-calculate formatted strings for short views
+	// This avoids double formatting (once for width calc, once for print)
+	// Only apply for short views that need it. Long view handles its own logic.
+	if options.long_format {
+		format_long_listing(mut entries, options)
+		return
+	}
+
+	// Prepare formatted entries for short views
+	formatted_entries := prepare_formatted_entries(entries, options)
+
 	match true {
-		options.long_format { format_long_listing(mut entries, options) }
-		options.list_by_lines { format_by_lines(entries, width, options) }
-		options.with_commas { format_with_commas(entries, options) }
-		options.one_per_line { format_one_per_line(entries, options) }
-		else { format_by_cells(entries, width, options) }
+		options.list_by_lines { format_by_lines(formatted_entries, width, options) }
+		options.with_commas { format_with_commas(formatted_entries, options) }
+		options.one_per_line { format_one_per_line(formatted_entries, options) }
+		else { format_by_cells(formatted_entries, width, options) }
 	}
 }
 
-fn format_by_cells(entries []Entry, width int, options Options) {
-	len := entries.max_name_len(options) + cell_spacing
-	cols := int_min(width / len, cell_max)
+fn prepare_formatted_entries(entries []Entry, options Options) []FormattedEntry {
+	mut formatted := []FormattedEntry{cap: entries.len}
+	for i in 0 .. entries.len {
+		entry := &entries[i]
+		name := format_entry_name(entry, options)
+		formatted << FormattedEntry{
+			entry:          entry
+			formatted_name: name
+			visible_len:    utf8_str_visible_length(name)
+			style:          get_style_for(entry, options)
+		}
+	}
+	return formatted
+}
+
+fn format_by_cells(entries []FormattedEntry, width int, options Options) {
+	if entries.len == 0 {
+		return
+	}
+
+	// Calc max len from cached values
+	mut max_len := 0
+	for e in entries {
+		if e.visible_len > max_len {
+			max_len = e.visible_len
+		}
+	}
+	cell_len := max_len + cell_spacing
+
+	cols := int_min(width / cell_len, cell_max)
 	max_cols := int_max(cols, 1)
 	partial_row := entries.len % max_cols != 0
 	rows := entries.len / max_cols + if partial_row { 1 } else { 0 }
 	max_rows := int_max(1, rows)
+
+	mut sb := strings.new_builder(1024 * 16)
 
 	for r := 0; r < max_rows; r += 1 {
 		for c := 0; c < max_cols; c += 1 {
 			idx := r + c * max_rows
 			if idx < entries.len {
 				entry := entries[idx]
-				name := format_entry_name(entry, options)
-				cell := format_cell(name, len, .left, get_style_for(entry, options), options)
-				print(cell)
+				write_cell(mut sb, entry.formatted_name, entry.visible_len, cell_len,
+					.left, entry.style, options)
 			}
 		}
-		print_newline()
+		sb.write_u8(`\n`)
 	}
+	print(sb.str())
 }
 
-fn format_by_lines(entries []Entry, width int, options Options) {
-	len := entries.max_name_len(options) + cell_spacing
-	cols := int_min(width / len, cell_max)
+fn format_by_lines(entries []FormattedEntry, width int, options Options) {
+	if entries.len == 0 {
+		return
+	}
+
+	mut max_len := 0
+	for e in entries {
+		if e.visible_len > max_len {
+			max_len = e.visible_len
+		}
+	}
+	cell_len := max_len + cell_spacing
+
+	cols := int_min(width / cell_len, cell_max)
 	max_cols := int_max(cols, 1)
+
+	mut sb := strings.new_builder(1024 * 16)
 
 	for i, entry in entries {
 		if i % max_cols == 0 && i != 0 {
-			print_newline()
+			sb.write_u8(`\n`)
 		}
-		name := format_entry_name(entry, options)
-		cell := format_cell(name, len, .left, get_style_for(entry, options), options)
-		print(cell)
+		write_cell(mut sb, entry.formatted_name, entry.visible_len, cell_len, .left, entry.style,
+			options)
 	}
-	print_newline()
+	sb.write_u8(`\n`)
+	print(sb.str())
 }
 
-fn format_one_per_line(entries []Entry, options Options) {
+fn format_one_per_line(entries []FormattedEntry, options Options) {
+	mut sb := strings.new_builder(1024 * 16)
 	for entry in entries {
-		println(format_cell(entry.name, 0, .left, get_style_for(entry, options), options))
+		write_cell(mut sb, entry.formatted_name, entry.visible_len, 0, .left, entry.style,
+			options)
+		sb.write_u8(`\n`)
 	}
+	print(sb.str())
 }
 
-fn format_with_commas(entries []Entry, options Options) {
+fn format_with_commas(entries []FormattedEntry, options Options) {
+	mut sb := strings.new_builder(1024 * 16)
 	last := entries.len - 1
 	for i, entry in entries {
-		content := if i < last { '${entry.name}, ' } else { entry.name }
-		print(format_cell(content, 0, .left, no_style, options))
+		if i < last {
+			// Reuse formatted name but append comma.
+			// Tricky if we rely on write_cell for styling.
+			// write_cell applies style to the string passed.
+			// If we pass "name, ", style applies to comma too? Usually fine.
+			// Or we write name styled, then comma unstyled.
+			write_cell_content(mut sb, entry.formatted_name, entry.visible_len, 0, .left,
+				entry.style, options)
+			sb.write_string(', ')
+		} else {
+			write_cell_content(mut sb, entry.formatted_name, entry.visible_len, 0, .left,
+				entry.style, options)
+		}
 	}
-	print_newline()
+	sb.write_u8(`\n`)
+	print(sb.str())
 }
 
-fn format_cell(s string, width int, align Align, style Style, options Options) string {
-	return match options.table_format {
-		true { format_table_cell(s, width, align, style, options) }
-		else { format_cell_content(s, width, align, style, options) }
+fn write_cell(mut sb strings.Builder, s string, s_len int, width int, align Align, style Style, options Options) {
+	match options.table_format {
+		true { write_table_cell(mut sb, s, s_len, width, align, style, options) }
+		else { write_cell_content(mut sb, s, s_len, width, align, style, options) }
 	}
 }
 
-fn format_cell_content(s string, width int, align Align, style Style, options Options) string {
-	mut cell := ''
-	pad := width - visible_length(s)
+fn write_cell_content(mut sb strings.Builder, s string, s_len int, width int, align Align, style Style, options Options) {
+	pad := width - s_len
 
 	if align == .right && pad > 0 {
-		cell += space.repeat(pad)
+		sb.write_string(space.repeat(pad))
 	}
 
-	cell += match options.colorize {
-		true { style_string(s, style, options) }
-		else { s }
+	match options.colorize {
+		true { sb.write_string(style_string(s, style, options)) }
+		else { sb.write_string(s) }
 	}
 
 	if align == .left && pad > 0 {
-		cell += space.repeat(pad)
+		sb.write_string(space.repeat(pad))
 	}
-
-	return cell
 }
 
-// surrounds a cell with table borders
-fn format_table_cell(s string, width int, align Align, style Style, options Options) string {
-	cell := format_cell_content(s, width, align, style, options)
-	return '${cell}${table_border_pad_right}'
+fn write_table_cell(mut sb strings.Builder, s string, s_len int, width int, align Align, style Style, options Options) {
+	write_cell_content(mut sb, s, s_len, width, align, style, options)
+	sb.write_string(table_border_pad_right)
+}
+
+fn format_cell(s string, width int, align Align, style Style, options Options) string {
+	// Legacy support for callers that need string (like format_long.v)
+	// We can wrap the builder version.
+	mut sb := strings.new_builder(128)
+	write_cell(mut sb, s, visible_length(s), width, align, style, options)
+	return sb.str()
 }
 
 fn print_dir_name(name string, options Options) {
@@ -129,12 +210,12 @@ fn print_dir_name(name string, options Options) {
 	}
 }
 
+// Deprecated: use FormattedEntry logic instead for batch operations
 fn (entries []Entry) max_name_len(options Options) int {
-	lengths := entries.map(visible_length(format_entry_name(it, options)))
-	return arrays.max(lengths) or { 0 }
+	return 0 // Unused in new logic but kept for interface compact if needed
 }
 
-fn get_style_for(entry Entry, options Options) Style {
+fn get_style_for(entry &Entry, options Options) Style {
 	return match true {
 		entry.link { options.style_ln }
 		entry.dir { options.style_di }
@@ -177,18 +258,18 @@ fn get_style_for_link(entry Entry, options Options) Style {
 	}
 }
 
-fn format_entry_name(entry Entry, options Options) string {
+fn format_entry_name(entry &Entry, options Options) string {
 	name := match options.relative_path {
 		true { os.join_path(entry.dir_name, entry.name) }
 		else { entry.name }
 	}
 
-	icon := get_icon_for_entry(entry, options)
+	icon := get_icon_for_entry(*entry, options)
 	prefix := if icon != '' { '${icon} ' } else { '' }
 
 	return match true {
 		entry.link {
-			link_style := get_style_for_link(entry, options)
+			link_style := get_style_for_link(*entry, options)
 			missing := if link_style == unknown_style { ' (not found)' } else { '' }
 			link := style_string(entry.link_origin, link_style, options)
 			'${prefix}${name} -> ${link}${missing}'

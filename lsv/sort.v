@@ -64,16 +64,6 @@ fn sort(mut entries []Entry, options Options) {
 
 		// Fallback to name sort (always consistent)
 		name_cmp := string_compare(a.name, b.name, options.sort_ignore_case)
-		// Reverse applies to primary sort, but usually fallback name sort is also reversed in `ls`?
-		// Actually `ls -r` reverses the whole result.
-		// If we return result above, we simplified.
-		// If result is 0, we fall through.
-		// If we want total reverse, we should apply reverse to the final return?
-		// But dirs_first usually stays dirs FIRST even in reverse?
-		// GNU ls: -r reverses the order of the sort. --group-directories-first groups dirs before files,
-		// THEN sorts them. So dirs come first, then files. Inside dirs, they are reversed?
-		// Let's assume dirs_first is structural and not affected by -r (logic above handles it before reverse check?).
-		// Wait, if I apply reverse to the result of primary sort, I should apply it to fallback too.
 		return if options.sort_reverse { -name_cmp } else { name_cmp }
 	})
 }
