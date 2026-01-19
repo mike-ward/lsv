@@ -168,17 +168,87 @@ fn checksum(name string, dir_name string, options Options) string {
 	if options.checksum == '' {
 		return ''
 	}
-	file := os.join_path(dir_name, name)
-	bytes := os.read_bytes(file) or { return unknown }
+	file_path := os.join_path(dir_name, name)
+	mut f := os.open(file_path) or { return unknown }
+	defer { f.close() }
 
-	return match options.checksum {
-		'md5' { md5.sum(bytes).hex() }
-		'sha1' { sha1.sum(bytes).hex() }
-		'sha224' { sha256.sum224(bytes).hex() }
-		'sha256' { sha256.sum256(bytes).hex() }
-		'sha512' { sha512.sum512(bytes).hex() }
-		'blake2b' { blake2b.sum256(bytes).hex() }
-		else { unknown }
+	mut buf := []u8{len: 64 * 1024}
+
+	match options.checksum {
+		'md5' {
+			mut digest := md5.new()
+			for {
+				n := f.read(mut buf) or { break }
+				if n == 0 {
+					break
+				}
+				digest.write(buf[..n]) or { return unknown }
+			}
+			return digest.sum([]).hex()
+		}
+		'sha1' {
+			mut digest := sha1.new()
+			for {
+				n := f.read(mut buf) or { break }
+				if n == 0 {
+					break
+				}
+				digest.write(buf[..n]) or { return unknown }
+			}
+			return digest.sum([]).hex()
+		}
+		'sha224' {
+			// sha256 module handles sha224 usually via config or different constructor?
+			// V's crypto.sha256 doesn't seem to expose new224() easily or it's sum224.
+			// Checking docs (implied): sum224 exists.
+			// If we can't stream sha224 easily without reading docs, we might have to use read_bytes or read docs.
+			// Let's stick to non-streaming for sha224 if unsure, OR use sha256.new() and see if there is a way.
+			// Actually, simplest is to fall back to memory for sha224 if I am unsure, but I want to optimize.
+			// Let's assume sha256.new224() might not exist.
+			// Reverting to read_bytes for sha224 just to be safe, or trying to find it.
+			// I'll stick to full read for sha224 to avoid breaking it if unknown.
+			f.close()
+			bytes := os.read_bytes(file_path) or { return unknown }
+			return sha256.sum224(bytes).hex()
+		}
+		'sha256' {
+			mut digest := sha256.new()
+			for {
+				n := f.read(mut buf) or { break }
+				if n == 0 {
+					break
+				}
+				digest.write(buf[..n]) or { return unknown }
+			}
+			return digest.sum([]).hex()
+		}
+		'sha512' {
+			mut digest := sha512.new()
+			for {
+				n := f.read(mut buf) or { break }
+				if n == 0 {
+					break
+				}
+				digest.write(buf[..n]) or { return unknown }
+			}
+			return digest.sum([]).hex()
+		}
+		'blake2b' {
+			// Blake2b in V might operate differently as seen in test failure (no sum()).
+			// It has `checksum()`.
+			mut digest := blake2b.new256() or { return unknown }
+			for {
+				n := f.read(mut buf) or { break }
+				if n == 0 {
+					break
+				}
+				digest.write(buf[..n]) or { return unknown }
+			}
+			return digest.checksum().hex()
+		}
+		else {
+			return unknown
+		}
 	}
 }
 

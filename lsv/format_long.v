@@ -219,51 +219,107 @@ fn format_long_listing(mut entries []Entry, options Options) {
 }
 
 fn longest_entries(mut entries []Entry, options Options) Longest {
+	mut max_atime := 0
+	mut max_checksum := 0
+	mut max_ctime := 0
+	mut max_file := 0
+	mut max_group_name := 0
+	mut max_index := 0
+	mut max_inode := 0
+	mut max_mime_type := 0
+	mut max_mtime := 0
+	mut max_nlink := 0
+	mut max_owner_name := 0
+	mut max_size := 0
+
+	for mut entry in entries {
+		// Calculate time formatting once and cache it in the entry
+		if !options.no_date {
+			entry.fmt_mtime = format_time(entry, .modified, options)
+			max_mtime = int_max(max_mtime, entry.fmt_mtime.len)
+		}
+		if options.accessed_date {
+			entry.fmt_atime = format_time(entry, .accessed, options)
+			max_atime = int_max(max_atime, entry.fmt_atime.len)
+		}
+		if options.changed_date {
+			entry.fmt_ctime = format_time(entry, .changed, options)
+			max_ctime = int_max(max_ctime, entry.fmt_ctime.len)
+		}
+
+		// Calculate other lengths
+		if options.checksum.len > 0 {
+			max_checksum = int_max(max_checksum, entry.checksum.len)
+		}
+
+		max_file = int_max(max_file, visible_length(format_entry_name(entry, options)))
+
+		if !options.no_group_name {
+			max_group_name = int_max(max_group_name, visible_length(entry.group))
+		}
+
+		if options.index {
+			// index is dynamic based on array position, max width is len of total count
+			max_index = int_max(max_index, entries.len.str().len)
+		}
+
+		if options.inode {
+			max_inode = int_max(max_inode, entry.stat.inode.str().len)
+		}
+
+		if options.mime_type {
+			max_mime_type = int_max(max_mime_type, entry.mime_type.len)
+		}
+
+		if !options.no_hard_links {
+			max_nlink = int_max(max_nlink, entry.stat.nlink.str().len)
+		}
+
+		if !options.no_owner_name {
+			max_owner_name = int_max(max_owner_name, visible_length(entry.owner))
+		}
+
+		if !options.no_size {
+			size_len := match true {
+				entry.dir { 1 } // '-'
+				options.size_ki && !options.size_kb { entry.size_ki.len }
+				options.size_kb { entry.size_kb.len }
+				options.size_comma { entry.size_comma.len }
+				else { entry.size.str().len }
+			}
+			max_size = int_max(max_size, size_len)
+		}
+	}
+
+	// Adjust for headers if necessary
+	if options.header {
+		max_atime = int_max(max_atime, visible_length(date_accessed_title))
+		max_checksum = int_max(max_checksum, visible_length(options.checksum.capitalize()))
+		max_ctime = int_max(max_ctime, visible_length(date_status_title))
+		max_file = int_max(max_file, visible_length(name_title))
+		max_group_name = int_max(max_group_name, visible_length(group_title))
+		max_index = int_max(max_index, visible_length(index_title))
+		max_inode = int_max(max_inode, visible_length(inode_title))
+		max_mime_type = int_max(max_mime_type, visible_length(mime_type_title))
+		max_mtime = int_max(max_mtime, visible_length(date_modified_title))
+		max_nlink = int_max(max_nlink, visible_length(links_title))
+		max_owner_name = int_max(max_owner_name, visible_length(owner_title))
+		max_size = int_max(max_size, visible_length(size_title))
+	}
+
 	return Longest{
-		atime:      if options.accessed_date {
-			longest_time(mut entries, .accessed, date_accessed_title, options)
-		} else {
-			0
-		}
-		checksum:   if options.checksum.len == 0 {
-			longest_checksum_len(entries, options.checksum, options)
-		} else {
-			0
-		}
-		ctime:      if options.changed_date {
-			longest_time(mut entries, .changed, date_status_title, options)
-		} else {
-			0
-		}
-		file:       longest_file_name_len(entries, name_title, options)
-		group_name: if !options.no_group_name {
-			longest_group_name_len(entries, group_title, options)
-		} else {
-			0
-		}
-		index:      if options.index { longest_index(entries, index_title) } else { 0 }
-		inode:      if options.inode { longest_inode_len(entries, inode_title, options) } else { 0 }
-		mime_type:  if options.mime_type {
-			longest_mime_type(entries, mime_type_title, options)
-		} else {
-			0
-		}
-		mtime:      if !options.no_date {
-			longest_time(mut entries, .modified, date_modified_title, options)
-		} else {
-			0
-		}
-		nlink:      if !options.no_hard_links {
-			longest_nlink_len(entries, links_title, options)
-		} else {
-			0
-		}
-		owner_name: if !options.no_owner_name {
-			longest_owner_name_len(entries, owner_title, options)
-		} else {
-			0
-		}
-		size:       if !options.no_size { longest_size_len(entries, size_title, options) } else { 0 }
+		atime:      max_atime
+		checksum:   max_checksum
+		ctime:      max_ctime
+		file:       max_file
+		group_name: max_group_name
+		index:      max_index
+		inode:      max_inode
+		mime_type:  max_mime_type
+		mtime:      max_mtime
+		nlink:      max_nlink
+		owner_name: max_owner_name
+		size:       max_size
 	}
 }
 
@@ -480,82 +536,4 @@ fn format_time(entry Entry, stat_time StatTime, options Options) string {
 
 	content := if entry.invalid { '?' + space.repeat(visible_length(date) - 1) } else { date }
 	return content
-}
-
-fn longest_nlink_len(entries []Entry, title string, options Options) int {
-	lengths := entries.map(it.stat.nlink.str().len)
-	max := arrays.max(lengths) or { 0 }
-	return if options.no_hard_links || !options.header { max } else { int_max(max, title.len) }
-}
-
-fn longest_owner_name_len(entries []Entry, title string, options Options) int {
-	lengths := entries.map(visible_length(it.owner))
-	max := arrays.max(lengths) or { 0 }
-	return if options.no_owner_name || !options.header { max } else { int_max(max, title.len) }
-}
-
-fn longest_group_name_len(entries []Entry, title string, options Options) int {
-	lengths := entries.map(visible_length(it.group))
-	max := arrays.max(lengths) or { 0 }
-	return if options.no_group_name || !options.header {
-		max
-	} else {
-		int_max(max, visible_length(title))
-	}
-}
-
-fn longest_size_len(entries []Entry, title string, options Options) int {
-	lengths := entries.map(match true {
-		it.dir { 1 } // '-'
-		options.size_ki && !options.size_kb { it.size_ki.len }
-		options.size_kb { it.size_kb.len }
-		options.size_comma { it.size_comma.len }
-		else { it.size.str().len }
-	})
-	max := arrays.max(lengths) or { 0 }
-	return if options.no_size || !options.header { max } else { int_max(max, visible_length(title)) }
-}
-
-fn longest_inode_len(entries []Entry, title string, options Options) int {
-	lengths := entries.map(it.stat.inode.str().len)
-	max := arrays.max(lengths) or { 0 }
-	return if !options.inode || !options.header { max } else { int_max(max, visible_length(title)) }
-}
-
-fn longest_file_name_len(entries []Entry, title string, options Options) int {
-	lengths := entries.map(visible_length(format_entry_name(it, options)))
-	max := arrays.max(lengths) or { 0 }
-	return if !options.header { max } else { int_max(max, visible_length(title)) }
-}
-
-fn longest_checksum_len(entries []Entry, title string, options Options) int {
-	lengths := entries.map(it.checksum.len)
-	max := arrays.max(lengths) or { 0 }
-	return if !options.header { max } else { int_max(max, visible_length(title)) }
-}
-
-fn longest_time(mut entries []Entry, stat_time StatTime, title string, options Options) int {
-	mut max_len := 0
-	for mut entry in entries {
-		str := format_time(entry, stat_time, options)
-		match stat_time {
-			.accessed { entry.fmt_atime = str }
-			.changed { entry.fmt_ctime = str }
-			.modified { entry.fmt_mtime = str }
-		}
-		if str.len > max_len {
-			max_len = str.len
-		}
-	}
-	return if options.header { int_max(visible_length(title), max_len) } else { max_len }
-}
-
-fn longest_mime_type(entries []Entry, title string, options Options) int {
-	mime_types := entries.map(it.mime_type.len)
-	max := arrays.max(mime_types) or { 0 }
-	return if options.header { int_max(visible_length(title), max) } else { max }
-}
-
-fn longest_index(entries []Entry, title string) int {
-	return int_max(visible_length(title), entries.len.str().len)
 }
