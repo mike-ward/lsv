@@ -38,11 +38,11 @@ Border format with header option
 
 ### Homebrew
 
-Not enough stars to publish to Homebrew (need 75) :(
+We need 75 stars to publish to Homebrew. Star the repo to help us get there!
 
 ## Help
 ```
-lsv v2025.2
+lsv
 -----------------------------------------------
 Usage: lsv [options] [FILES]
 
@@ -133,14 +133,14 @@ environment variable.
 
 ## Why?
 
-It started with writing a `ls` implemention for the V Language CoreUtils project.
-Coreutils is a reimplementation of the POSIX and GNU utility programs written in the V Language. Everything was going fine until I started having too much fun and down the, "Rabbit Hole" I went.
+It started with writing a `ls` implementation for the V Language CoreUtils project.
+Coreutils is a reimplementation of the POSIX and GNU utility programs written in the V Language. Everything was going fine until I started having too much fun and down the "rabbit hole" I went.
 
 What's this V language? You can read about it [here](https://vlang.io/), but the short version is it is a simple, fast, safe, compiled language for developing maintainable software. I mentioned `lsv` is not written in Rust. I'm not trashing Rust. Rust is obviously a robust and popular language. However, it's a steep climb to get up to speed and requires a fair bit of cognitive load to use it well.
 
-V is the opposite. It has many of the same safty features of Rust, but without the cognitive over head. It's simple, straightfoward syntax makes it a breeze to write. Builds happen in milliseconds, not minutes and hours. You don't need any special build tools like Gradle.
+V is the opposite. It has many of the same safety features of Rust, but without the cognitive overhead. Its simple, straightforward syntax makes it a breeze to write. Builds happen in milliseconds, not minutes and hours. You don't need any special build tools like Gradle.
 
-Finally, take a look at the `lsv` code base. The entire code base is **2K lines** 🧐. Furthermore, the implemention is straightforward. No threading, coroutines or fancy memory management. Even if you don't know V, I'm betting you will understand the code.
+Finally, take a look at the `lsv` codebase. The entire codebase is **2K lines** 🧐. Furthermore, the implementation is straightforward. No threading, coroutines or fancy memory management. Even if you don't know V, I'm betting you will understand the code.
 
 ## Helping Out
 

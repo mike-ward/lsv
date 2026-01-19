@@ -204,15 +204,6 @@ fn checksum(name string, dir_name string, options Options) string {
 			return digest.sum([]).hex()
 		}
 		'sha224' {
-			// sha256 module handles sha224 usually via config or different constructor?
-			// V's crypto.sha256 doesn't seem to expose new224() easily or it's sum224.
-			// Checking docs (implied): sum224 exists.
-			// If we can't stream sha224 easily without reading docs, we might have to use read_bytes or read docs.
-			// Let's stick to non-streaming for sha224 if unsure, OR use sha256.new() and see if there is a way.
-			// Actually, simplest is to fall back to memory for sha224 if I am unsure, but I want to optimize.
-			// Let's assume sha256.new224() might not exist.
-			// Reverting to read_bytes for sha224 just to be safe, or trying to find it.
-			// I'll stick to full read for sha224 to avoid breaking it if unknown.
 			f.close()
 			bytes := os.read_bytes(file_path) or { return unknown }
 			return sha256.sum224(bytes).hex()
