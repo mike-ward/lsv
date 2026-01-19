@@ -147,9 +147,9 @@ fn format_long_listing(mut entries []Entry, options Options) {
 			content := match true {
 				entry.invalid { unknown }
 				entry.dir || entry.socket || entry.fifo { '-' }
-				options.size_ki && options.size_ki && !options.size_kb { entry.size_ki }
-				options.size_kb && options.size_kb { entry.size_kb }
-				options.size_comma { entry.size_comma }
+				options.size_ki && !options.size_kb { readable_size(entry.size, true) }
+				options.size_kb { readable_size(entry.size, false) }
+				options.size_comma { num_with_commas(entry.size) }
 				else { entry.size.str() }
 			}
 			size_style := match entry.link_stat.size > 0 {
@@ -282,9 +282,9 @@ fn longest_entries(mut entries []Entry, options Options) Longest {
 		if !options.no_size {
 			size_len := match true {
 				entry.dir { 1 } // '-'
-				options.size_ki && !options.size_kb { entry.size_ki.len }
-				options.size_kb { entry.size_kb.len }
-				options.size_comma { entry.size_comma.len }
+				options.size_ki && !options.size_kb { readable_size(entry.size, true).len }
+				options.size_kb { readable_size(entry.size, false).len }
+				options.size_comma { num_with_commas(entry.size).len }
 				else { entry.size.str().len }
 			}
 			max_size = int_max(max_size, size_len)

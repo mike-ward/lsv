@@ -23,9 +23,6 @@ struct Entry {
 	unknown     bool
 	link_origin string
 	size        u64
-	size_comma  string
-	size_ki     string
-	size_kb     string
 	checksum    string
 	mime_type   string
 	owner       string
@@ -69,7 +66,7 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 
 	filetype := stat.get_filetype()
 	is_link := filetype == .symbolic_link
-	link_origin := if is_link { read_link(path) } else { '' }
+	link_origin := if is_link && options.long_format { read_link(path) } else { '' }
 	mut size := stat.size
 	mut link_stat := os.Stat{}
 
@@ -106,13 +103,22 @@ fn make_entry(file string, dir_name string, options Options) Entry {
 		unknown:     is_unknown
 		link_origin: link_origin
 		size:        size
-		size_comma:  if options.size_comma { num_with_commas(size) } else { '' }
-		size_ki:     if options.size_ki { readable_size(size, true) } else { '' }
-		size_kb:     if options.size_kb { readable_size(size, false) } else { '' }
-		checksum:    if is_file { checksum(file, dir_name, options) } else { '' }
+		checksum:    if is_file && options.checksum != '' {
+			checksum(file, dir_name, options)
+		} else {
+			''
+		}
 		mime_type:   if options.mime_type { get_mime_type(file, link_origin, is_exe) } else { '' }
-		owner:       if options.numeric_ids { stat.uid.str() } else { get_owner_name(stat.uid) }
-		group:       if options.numeric_ids { stat.gid.str() } else { get_group_name(stat.gid) }
+		owner:       if options.long_format && !options.no_owner_name {
+			if options.numeric_ids { stat.uid.str() } else { get_owner_name(stat.uid) }
+		} else {
+			''
+		}
+		group:       if options.long_format && !options.no_group_name {
+			if options.numeric_ids { stat.gid.str() } else { get_group_name(stat.gid) }
+		} else {
+			''
+		}
 		invalid:     invalid
 	}
 }
