@@ -13,32 +13,124 @@ fn get_icon_for_entry(entry Entry, options Options) string {
 }
 
 fn get_icon_for_file(name string, ext string, entry Entry) string {
-	// default icon for all files. try to find a better one though...
+	// default icon
 	mut icon := icons_map['file']
-	// resolve aliased extensions
-	mut ext_key := ext.to_lower()
+
+	// Extension lookup
+	// Optimization: Try exact match first to avoid allocation of to_lower()
+	// Most extensions are already lowercase.
+	mut ext_key := ext
 	if ext.starts_with('.') {
 		ext_key = ext_key[1..]
 	}
-	alias := aliases_map[ext_key]
-	if alias != '' {
-		ext_key = alias
+
+	// Check aliases first (assuming aliases key are lowercase, so this might be tricky if we don't lower)
+	// Actually aliases map keys are lowercase.
+	// So if ext is "PNG", alias lookup "PNG" fails.
+	// But direct icon lookup "PNG" might fail if map keys are lowercase.
+	// The maps are all lowercase keys.
+	// So we MUST lower if the input is mixed/upper.
+	// But if input is already lower, `to_lower` might optimize?
+	// V's `to_lower` returns a new string.
+	// Check if string is all lower?
+	// `is_lower` loop vs allocation? Allocation is expensive.
+	// Simple optimization: check if `icons_map[ext_key]` exists (if map has exact keys? Map keys are lc).
+	// So if ext_key is "png", it works.
+
+	// Resolve alias
+	// We need lower case for alias lookup usually.
+	mut lower_ext_key := '' // Lazy init
+
+	// Try exact match on icons_map first (if user has exact case config? No, internal map is lower).
+	// So if ext_key is "png", icons_map['png'] works.
+	// If ext_key is "PNG", icons_map['PNG'] fails.
+
+	mut better_icon := icons_map[ext_key]
+	if better_icon == '' {
+		// Not found exact, try lower case
+		lower_ext_key = ext_key.to_lower()
+
+		// Try alias with lower
+		alias := aliases_map[lower_ext_key]
+		if alias != '' {
+			better_icon = icons_map[alias]
+		} else {
+			better_icon = icons_map[lower_ext_key]
+		}
+	} else {
+		// Found exact match, but check if it's an alias?
+		// Aliases are in aliases_map. "h++" -> "h".
+		// If "h++" is in icons_map? No.
+		// So strict order: Alias check -> Icon check?
+		// Original code:
+		/*
+        	mut ext_key := ext.to_lower()
+            // ... strip dot
+            alias := aliases_map[ext_key]
+            if alias != '' { ext_key = alias }
+            better_icon := icons_map[ext_key]
+        */
+		// If we want to optimize:
+		// 1. Try `aliases_map[ext_key]` (exact). If found, use result as key for icons.
+		// 2. If not, try `icons_map[ext_key]` (exact).
+		// 3. If neither, `to_lower` and repeat.
+
+		// Aliases map keys: 'apk', 'gradle' (lowercase).
+		// If file is 'file.APK', ext is 'APK'. `aliases_map['APK']` will fail.
+		// So for "APK", we must lower.
+		// If file is 'file.apk', ext is 'apk'. `aliases_map['apk']` succeeds.
+
+		alias := aliases_map[ext_key]
+		if alias != '' {
+			better_icon = icons_map[alias]
+		} else {
+			// No exact alias. Try exact icon.
+			better_icon = icons_map[ext_key]
+		}
+
+		if better_icon == '' {
+			// Try lower case
+			lower_ext_key = ext_key.to_lower()
+			if lower_ext_key != ext_key { // Only if different
+				alias_lower := aliases_map[lower_ext_key]
+				if alias_lower != '' {
+					better_icon = icons_map[alias_lower]
+				} else {
+					better_icon = icons_map[lower_ext_key]
+				}
+			}
+		}
 	}
-	// see if we can find a better icon based on extension alone
-	better_icon := icons_map[ext_key]
+
 	if better_icon != '' {
 		icon = better_icon
 	}
-	// now look for icons based on full names
-	mut full_name := name.to_lower()
-	full_alias := aliases_map[full_name]
-	if full_alias != '' {
-		full_name = full_alias
+
+	// now look for icons based on full names (like "Makefile")
+	// Map keys are: 'gruntfile.js' (lower).
+	// Input Name: "Makefile".
+	// Exact lookup: folders_map["Makefile"] -> fail.
+	// to_lower -> "makefile". folders_map["makefile"] -> success.
+	// Optimization: Check exact, if fail, lower.
+
+	mut best_icon := icons_map[name]
+	if best_icon == '' {
+		lower_name := name.to_lower()
+		if lower_name != name {
+			// Check alias for full name
+			full_alias := aliases_map[lower_name]
+			if full_alias != '' {
+				best_icon = icons_map[full_alias]
+			} else {
+				best_icon = icons_map[lower_name]
+			}
+		}
 	}
-	best_icon := icons_map[full_name]
+
 	if best_icon != '' {
 		icon = best_icon
 	}
+
 	// look at file type
 	if icon == icons_map['file'] {
 		icon = match true {
@@ -48,16 +140,19 @@ fn get_icon_for_file(name string, ext string, entry Entry) string {
 			else { icons_map['file'] }
 		}
 	}
-	return icon + space
+	return icon
 }
 
 fn get_icon_for_folder(name string) string {
 	mut icon := folders_map['folder']
-	better_icon := folders_map[name.to_lower()]
+	mut better_icon := folders_map[name]
+	if better_icon == '' {
+		better_icon = folders_map[name.to_lower()]
+	}
 	if better_icon != '' {
 		icon = better_icon
 	}
-	return icon + space
+	return icon
 }
 
 const icons_map = {

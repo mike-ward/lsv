@@ -18,15 +18,15 @@ fn lsv(entries []Entry, options Options, mut cyclic Set[string]) {
 
 	for dir in sorted_dirs {
 		files := group_by_dirs[dir]
-		filtered := filter(files, options)
-		mut sorted := sort(filtered, options)
+		mut filtered := filter(files, options)
+		sort(mut filtered, options)
 		if group_by_dirs.len > 1 || options.recursive {
 			print_dir_name(dir, options)
 		}
-		print_files(mut sorted, options)
+		print_files(mut filtered, options)
 
 		if options.recursive {
-			for entry in sorted {
+			for entry in filtered {
 				if entry.dir {
 					entry_path := os.join_path(entry.dir_name, entry.name)
 					if cyclic.exists(entry_path) {

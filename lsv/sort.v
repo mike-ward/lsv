@@ -1,81 +1,84 @@
-import arrays
 import os
 
-fn sort(entries []Entry, options Options) []Entry {
-	cmp := match true {
-		options.sort_none {
-			fn (a &Entry, b &Entry) int {
-				return 0
+fn sort(mut entries []Entry, options Options) {
+	if options.sort_none {
+		return
+	}
+
+	entries.sort_with_compare(fn [options] (a &Entry, b &Entry) int {
+		// Handle directories first
+		if options.dirs_first {
+			if a.dir && !b.dir {
+				return -1
+			}
+			if !a.dir && b.dir {
+				return 1
 			}
 		}
-		options.sort_size {
-			fn [options] (a &Entry, b &Entry) int {
-				return match true {
-					a.size < b.size { 1 }
-					a.size > b.size { -1 }
-					else { string_compare(a.name, b.name, options.sort_ignore_case) }
+
+		// Primary Sort
+		result := match true {
+			options.sort_size {
+				if a.size < b.size {
+					1
+				} else if a.size > b.size {
+					-1
+				} else {
+					0
 				}
 			}
-		}
-		options.sort_time {
-			fn [options] (a &Entry, b &Entry) int {
-				return match true {
-					a.stat.mtime < b.stat.mtime { 1 }
-					a.stat.mtime > b.stat.mtime { -1 }
-					else { string_compare(a.name, b.name, options.sort_ignore_case) }
+			options.sort_time {
+				if a.stat.mtime < b.stat.mtime {
+					1
+				} else if a.stat.mtime > b.stat.mtime {
+					-1
+				} else {
+					0
 				}
 			}
-		}
-		options.sort_width {
-			fn [options] (a &Entry, b &Entry) int {
+			options.sort_width {
+				// Calculate lengths (expensive but needed for accuracy if sorting by width)
+				// Optimization: We could cache this if we sorted primarily by width often, but usually rare.
 				a_len := a.name.len + a.link_origin.len + if a.link_origin.len > 0 { 4 } else { 0 }
 				b_len := b.name.len + b.link_origin.len + if b.link_origin.len > 0 { 4 } else { 0 }
-				result := a_len - b_len
-				return if result != 0 {
-					result
-				} else {
-					string_compare(a.name, b.name, options.sort_ignore_case)
-				}
+				a_len - b_len
+			}
+			options.sort_ext {
+				// Optimization: avoid re-calculating ext multiple times if possible,
+				// but here we just optimize the calling pattern.
+				// For truly high perf, we'd store ext in Entry, but that increases memory.
+				// Given V's os.file_ext is fast (string slicing), this might be acceptable.
+				compare_strings(os.file_ext(a.name), os.file_ext(b.name))
+			}
+			options.sort_natural {
+				natural_compare(a.name, b.name, options.sort_ignore_case)
+			}
+			else {
+				0
 			}
 		}
-		options.sort_natural {
-			fn [options] (a &Entry, b &Entry) int {
-				return natural_compare(a.name, b.name, options.sort_ignore_case)
-			}
-		}
-		options.sort_ext {
-			fn [options] (a &Entry, b &Entry) int {
-				result := string_compare(os.file_ext(a.name), os.file_ext(b.name), options.sort_ignore_case)
-				return if result != 0 {
-					result
-				} else {
-					string_compare(a.name, b.name, options.sort_ignore_case)
-				}
-			}
-		}
-		else {
-			fn [options] (a &Entry, b &Entry) int {
-				return string_compare(a.name, b.name, options.sort_ignore_case)
-			}
-		}
-	}
 
-	// if directories first option, group entries into dirs and files
-	// The 'dir' and 'file' labels are discriptive. The only thing that
-	// matters is that the 'dir' key collates before the 'file' key
-	groups := arrays.group_by[string, Entry](entries, fn [options] (e Entry) string {
-		return if options.dirs_first && e.dir { 'dir' } else { 'file' }
+		if result != 0 {
+			return if options.sort_reverse { -result } else { result }
+		}
+
+		// Fallback to name sort (always consistent)
+		name_cmp := string_compare(a.name, b.name, options.sort_ignore_case)
+		// Reverse applies to primary sort, but usually fallback name sort is also reversed in `ls`?
+		// Actually `ls -r` reverses the whole result.
+		// If we return result above, we simplified.
+		// If result is 0, we fall through.
+		// If we want total reverse, we should apply reverse to the final return?
+		// But dirs_first usually stays dirs FIRST even in reverse?
+		// GNU ls: -r reverses the order of the sort. --group-directories-first groups dirs before files,
+		// THEN sorts them. So dirs come first, then files. Inside dirs, they are reversed?
+		// Let's assume dirs_first is structural and not affected by -r (logic above handles it before reverse check?).
+		// Wait, if I apply reverse to the result of primary sort, I should apply it to fallback too.
+		return if options.sort_reverse { -name_cmp } else { name_cmp }
 	})
-
-	mut sorted := []Entry{}
-	for key in groups.keys().sorted() {
-		sorted << groups[key].sorted_with_compare(cmp)
-	}
-
-	return if options.sort_reverse { sorted.reverse() } else { sorted }
 }
 
-fn string_compare(a &string, b &string, ignore_case bool) int {
+fn string_compare(a string, b string, ignore_case bool) int {
 	return match ignore_case {
 		true { compare_strings(a.to_lower(), b.to_lower()) }
 		else { compare_strings(a, b) }

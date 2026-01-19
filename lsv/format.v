@@ -184,19 +184,20 @@ fn format_entry_name(entry Entry, options Options) string {
 	}
 
 	icon := get_icon_for_entry(entry, options)
+	prefix := if icon != '' { '${icon} ' } else { '' }
 
 	return match true {
 		entry.link {
 			link_style := get_style_for_link(entry, options)
 			missing := if link_style == unknown_style { ' (not found)' } else { '' }
 			link := style_string(entry.link_origin, link_style, options)
-			'${icon}${name} -> ${link}${missing}'
+			'${prefix}${name} -> ${link}${missing}'
 		}
 		options.quote {
-			'${icon}"${name}"'
+			'${prefix}"${name}"'
 		}
 		else {
-			'${icon}${name}'
+			'${prefix}${name}'
 		}
 	}
 }
