@@ -39,8 +39,10 @@ fn sort(mut entries []&Entry, options Options) {
 			options.sort_width {
 				// Calculate lengths (expensive but needed for accuracy if sorting by width)
 				// Optimization: We could cache this if we sorted primarily by width often, but usually rare.
-				a_len := (*a).name.len + (*a).link_origin.len + if (*a).link_origin.len > 0 { 4 } else { 0 }
-				b_len := (*b).name.len + (*b).link_origin.len + if (*b).link_origin.len > 0 { 4 } else { 0 }
+				a_len := (*a).name.len + (*a).link_origin.len +
+					if (*a).link_origin.len > 0 { 4 } else { 0 }
+				b_len := (*b).name.len + (*b).link_origin.len +
+					if (*b).link_origin.len > 0 { 4 } else { 0 }
 				a_len - b_len
 			}
 			options.sort_ext {

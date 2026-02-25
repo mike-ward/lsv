@@ -88,12 +88,10 @@ fn make_entry(file string, dir_name string, options Options) &Entry {
 		unknown:     is_unknown
 		link_origin: link_origin
 
-		size:        size
-		invalid:     invalid
+		size:    size
+		invalid: invalid
 	}
-
-	}
-
+}
 
 fn num_with_commas(num u64) string {
 	if num == 0 {
@@ -141,8 +139,6 @@ fn readable_size(size u64, si bool) string {
 	}
 	return size.str()
 }
-
-
 
 @[inline]
 fn is_executable(stat os.Stat) bool {

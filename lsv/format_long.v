@@ -47,13 +47,13 @@ struct Longest {
 
 struct DisplayCache {
 mut:
-	checksum   string
-	mime_type  string
-	owner      string
-	group      string
-	fmt_atime  string
-	fmt_ctime  string
-	fmt_mtime  string
+	checksum  string
+	mime_type string
+	owner     string
+	group     string
+	fmt_atime string
+	fmt_ctime string
+	fmt_mtime string
 }
 
 enum StatTime {
@@ -102,7 +102,8 @@ fn format_long_listing(mut entries []&Entry, options Options) {
 
 		// mime type
 		if options.mime_type {
-			print(format_cell(c_entry.mime_type, longest.mime_type, .right, no_style, options))
+			print(format_cell(c_entry.mime_type, longest.mime_type, .right, no_style,
+				options))
 			print_space()
 		}
 
@@ -574,6 +575,7 @@ fn format_time(entry &Entry, stat_time StatTime, options Options) string {
 	content := if entry.invalid { '?' + space.repeat(visible_length(date) - 1) } else { date }
 	return content
 }
+
 fn checksum(name string, dir_name string, options Options) string {
 	if options.checksum == '' {
 		return ''
