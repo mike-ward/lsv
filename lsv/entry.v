@@ -106,7 +106,7 @@ fn num_with_commas(num u64) string {
 		if digit_count > 0 && digit_count % 3 == 0 {
 			buf << `,`
 		}
-		buf << byte(`0` + n % 10)
+		buf << u8(`0` + n % 10)
 		n /= 10
 		digit_count++
 	}

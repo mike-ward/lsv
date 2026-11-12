@@ -35,10 +35,10 @@ fn read_link(path string) string {
 	}
 }
 
-fn get_owner_name(uid usize) string {
+fn get_owner_name(uid uint) string {
 	return uid.str()
 }
 
-fn get_group_name(uid usize) string {
+fn get_group_name(uid uint) string {
 	return uid.str()
 }
