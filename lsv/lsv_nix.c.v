@@ -20,7 +20,7 @@ struct Group {
 
 fn C.getpwuid(uid u32) &Passwd
 fn C.getgrgid(uid u32) &Group
-fn C.readlink(pathname &char, buf &char, bufsiz u32) i32
+fn C.readlink(pathname &char, buf &char, bufsiz uint) i32
 
 fn get_owner_name(uid u32) string {
 	pwd := C.getpwuid(uid)
@@ -53,7 +53,7 @@ fn get_group_name(uid u32) string {
 fn read_link(file string) string {
 	buf_size := 2048
 	buf := '\0'.repeat(buf_size)
-	len := C.readlink(file.str, buf.str, u32(buf_size))
+	len := C.readlink(file.str, buf.str, buf_size)
 	if len == -1 {
 		return os.error_posix().msg()
 	}
