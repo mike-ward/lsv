@@ -23,7 +23,8 @@ jobs:
         shell: bash
         run: |
           # Build V
-          cd v && ./make.bat -tcc
+          # vlang/v renamed make.bat to makev.bat (vlang/v 637b1273, fixes #21497).
+          cd v && ./makev.bat -tcc
           echo "adding '${PWD}' to PATH"
           echo "${PWD}" >> $GITHUB_PATH
       - name: Build all
