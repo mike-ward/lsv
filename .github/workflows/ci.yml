@@ -23,12 +23,14 @@ jobs:
         shell: bash
         run: |
           # Build V
-          cd v && ./make.bat -tcc
+          # vlang/v renamed make.bat to makev.bat (vlang/v 637b1273, fixes #21497).
+          cd v && ./makev.bat -tcc
           echo "adding '${PWD}' to PATH"
           echo "${PWD}" >> $GITHUB_PATH
       - name: Build all
         shell: bash
-        run: cd lsv/lsv && v -prod .
+        # No -prod here: VFLAGS selects tcc, and current V rejects tcc with -prod.
+        run: cd lsv/lsv && v .
       - name: Run program
         shell: bash
         run: cd lsv/lsv && ./lsv
