@@ -29,7 +29,8 @@ jobs:
           echo "${PWD}" >> $GITHUB_PATH
       - name: Build all
         shell: bash
-        run: cd lsv/lsv && v -prod .
+        # No -prod here: VFLAGS selects tcc, and current V rejects tcc with -prod.
+        run: cd lsv/lsv && v .
       - name: Run program
         shell: bash
         run: cd lsv/lsv && ./lsv
